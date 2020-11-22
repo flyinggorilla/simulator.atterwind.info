@@ -19,7 +19,7 @@ if (mode != 'production') {
 
     app.get('/', function(rootreq, rootres) {
         rootres.set("Access-Control-Allow-Origin", "*");
-        rootres.sendFile(path.join(__dirname + '/sailtwist.html'));
+        rootres.sendFile(path.join(__dirname + '/simulator.html'));
     });
 
     app.get('/favicon.png', function(rootreq, rootres) {
@@ -53,8 +53,8 @@ if (mode != 'production') {
     app.get('/OrbitControls.js', function(rootreq, rootres) {
         rootres.sendFile(path.join(__dirname + '/OrbitControls.js'));
     });
-    app.get('/sailtwist.css', function(rootreq, rootres) {
-        rootres.sendFile(path.join(__dirname + '/sailtwist.css'));
+    app.get('/simulator.css', function(rootreq, rootres) {
+        rootres.sendFile(path.join(__dirname + '/simulator.css'));
     });
     app.get('/mast.stl', function(rootreq, rootres) {
         rootres.sendFile(path.join(__dirname + '/mast.stl'));
@@ -65,5 +65,5 @@ if (mode != 'production') {
 
 }
 
-app.listen(listenPort, () => console.log(`Sailtwist app listening on port ${listenPort}!`))
+app.listen(listenPort, () => console.log(`Simulator app listening on port ${listenPort}!`))
 

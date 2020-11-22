@@ -1,14 +1,14 @@
 {
-    "name": "sailtwist",
+    "name": "simulator",
     "version": "0.0.1",
     "private": true,
-    "main": "sailtwist.js",
+    "main": "simulator.js",
     "engines": {
         "node": "^10.x.x"
     },
     "scripts": {
-        "start": "node sailtwist.js",
-        "deploy": "gcloud app deploy sailtwist"
+        "start": "node simulator.js",
+        "deploy": "gcloud app deploy simulator"
     },
     "dependencies": {
         "double-ended-queue": "^2.1.0-0",
