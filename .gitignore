@@ -1,2 +1,4 @@
 node_modules
-gcupload.cmd 
+gcupload.cmd
+*.cmd
+
