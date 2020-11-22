@@ -1,0 +1,19 @@
+{
+    "name": "sailtwist",
+    "version": "0.0.1",
+    "private": true,
+    "main": "sailtwist.js",
+    "engines": {
+        "node": "^10.x.x"
+    },
+    "scripts": {
+        "start": "node sailtwist.js",
+        "deploy": "gcloud app deploy sailtwist"
+    },
+    "dependencies": {
+        "double-ended-queue": "^2.1.0-0",
+        "express": "^4.17.1",
+        "https": "^1.0.0",
+        "zlib": "^1.0.5"
+    }
+}

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>calculate windsheer</title>
+    <meta charset="utf-8">
+</head>
+
+<body>
+    <div id="info">
+        hello
+    </div>
+
+    <script>
+        // https://websites.pmc.ucsc.edu/~jnoble/wind/extrap/
+        let refheight = 10;
+        let refspeed = 10;
+        let evalspeed;
+        let evalheight = 0.01;
+        let roughness = 0.002;
+        evalspeed = refspeed*(Math.log(evalheight/roughness))/(Math.log(refheight/roughness));
+        //console.log(evalspeed);
+
+        // https://en.wikipedia.org/wiki/Wind_gradient
+        let speed10 = 10;
+        let height10 = 10;
+        evalspeed;
+        evalheight = 0.01;
+        let hellman = 0.27; // alpha
+        evalspeed = speed10*(Math.pow((evalheight/height10), hellman));
+        //console.log(evalspeed);
+
+        // location	α
+        // Unstable air above open water surface:	0.06
+        // Neutral air above open water surface:	0.10
+        // Unstable air above flat open coast:	0.11
+        // Neutral air above flat open coast:	0.16
+        // Stable air above open water surface:	0.27
+        // Unstable air above human inhabited areas:	0.27
+        // Neutral air above human inhabited areas:	0.34
+        // Stable air above flat open coast:	0.40
+        // Stable air above human inhabited areas:	0.60
+
+
+        // https://en.wikipedia.org/wiki/Apparent_wind
+        function apparentWind(sog, cog, tws, twd) {
+            let twa = twd-cog;
+            /*if (twa < 0) {
+                twa = 360 + twa;
+            }*/
+            let A = Math.cos((twa*Math.PI/180));
+            let aws = Math.sqrt((tws*tws)+(sog*sog)+(2*tws*sog*A));
+            let B = Math.cos(twa*Math.PI/180);
+            let C = (((tws*B)+sog)/aws);
+            let D = Math.acos(C);
+            let awa = twa <= 0 || twa > 180 ? - D*180/Math.PI :  D*180/Math.PI;
+            let awd = cog + awa;
+
+            let awastr = "";
+            if (twa < 0 || twa > 180) {                // Wind from Port
+                let awa1 = 360 - awa.toFixed(0);
+                awastr = "-" + awa.toFixed(0) + " (" + awa1 + ")";
+            } else {
+                awastr = awa.toFixed(0);
+            }
+            //console.log("apparrent wind: " + awastr);
+            console.log("sog: " + sog + " cog: " + cog + " aws: " + aws.toFixed(1) + " awa: " + awa.toFixed(1) + " awd: " + awd.toFixed(1));
+
+            return { aws: aws, awa: awa, awd: awd};
+
+        }
+
+        apparentWind(10, 90, 0, 0);   // awa: 0, awd: 90
+        apparentWind(10, -90, 0, 0);  // awa: 0, awd: -90
+        apparentWind(0, 60, 10, 0);   // awa: -60, awd: 0
+        apparentWind(0, -60, 10, 0);  // awa: 60, awd: 0
+        apparentWind(0, 90, 10, 0);   // awa: -90, awd: 0
+        apparentWind(0, -90, 10, 0);  // awa: 90, awd: 0 
+        apparentWind(5, 90, 10, 0);   // awa: -60, awd: ~30
+        apparentWind(5, -90, 10, 0);
+        apparentWind(10, 90, 10, 0);
+        apparentWind(10, -90, 10, 0);
+        apparentWind(15, -90, 10, 0);
+        apparentWind(15, 90, 10, 0);
+        apparentWind(10, 180, 10, 0);
+        apparentWind(10, -180, 10, 0);
+        apparentWind(5, 180, 10, 0);
+        apparentWind(5, -180, 10, 0);
+        apparentWind(10, 135, 10, 0);
+        apparentWind(10, -135, 10, 0);
+        apparentWind(10, 45, 10, 0);
+        apparentWind(10, -45, 10, 0);
+
+
+</script>
+</body>
+
+</html>
