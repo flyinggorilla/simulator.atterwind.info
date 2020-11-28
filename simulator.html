@@ -2,566 +2,90 @@
 <html lang="en">
 
 <head>
-    <title>Apparentwind and Sailtwist Visual Simulator</title>
+    <title>Apparentwind and Sailtwist Visual Simulator: A-Cat foiling catamaran</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link type="text/css" rel="stylesheet" href="simulator.css">
+    <link rel="icon" href="favicon.png" sizes="192x192">    
 </head>
 
 <body>
+    <script type="text/javascript">
+        /*Copyright and licenses see https://www.dynatrace.com/company/trust-center/customers/reports/*/
+        (function(){if(typeof window!=="undefined"&&window.setTimeout){window.setTimeout=window.setTimeout;}var Promise=self.Promise||self.dT_&&dT_.prm&&dT_.prm();(function(){function Wa(){document.cookie="__dTCookie=1;SameSite=Lax";var Fa=-1!==document.cookie.indexOf("__dTCookie");document.cookie="__dTCookie=1; expires=Thu, 01-Jan-1970 00:00:01 GMT";return Fa}function bb(){return void 0===La.dialogArguments?navigator.cookieEnabled||Wa():Wa()}function ob(){var Fa;if(bb()&&!window.dT_){var Oa=(Fa={},Fa.cfg="app=622e07041497ff0c|cors=1|featureHash=A2QSVfqru|msl=153600|vcv=2|reportUrl=https://bf72043wce.bf.dynatrace.com/bf|rdnt=1|uxrgce=1|bp=3|cuc=z1up2a1a|srms=1,1,,,,2,1,0,0%2Ftextarea%2Cinput%2Cselect%2Coption;0%2Fdatalist;0%2Fform%20button;0%2F%5Bdata-dtrum-input%5D;0%2F.data-dtrum-input;1%2F%5Edata%28%28%5C-.%2B%24%29%7C%24%29|dpvc=1|lastModification=1606563068685|dtVersion=10205201116183137|tp=500,50,0,1|uxdcw=1500|vs=2|featureHash=A2QSVfqru|agentUri=https://js-cdn.dynatrace.com/jstag/145e12d594f/ruxitagent_A2QSVfqru_10205201116183137.js|auto=|domain=|rid=RID_|rpid=|app=622e07041497ff0c",Fa.iCE=bb,Fa);window.dT_=Oa}}var La="undefined"!==typeof window?
+        window:self,Ra;La.dT_?(null===(Ra=La.console)||void 0===Ra?void 0:Ra.log("Duplicate agent injection detected, turning off redundant initConfig."),La.dT_.di=1):ob()})();}).call(this);
+        (function(){if(typeof window!=="undefined"&&window.setTimeout){window.setTimeout=window.setTimeout;}var Promise=self.Promise||self.dT_&&dT_.prm&&dT_.prm();(function(){function Wa(){}function bb(n,C,R){void 0===R&&(R=0);var qa=-1;C&&(null===n||void 0===n?0:n.indexOf)&&(qa=n.indexOf(C,R));return qa}function ob(){var n;return!(null===(n=lb.console)||void 0===n||!n.log)}function La(n){var C=document.cookie;if(!C)return"";var R=n+"=";n=bb(C,R);if(0>n)return"";for(;0<=n;){if(0===n||" "===C.charAt(n-1)||";"===C.charAt(n-1))return R=n+R.length,n=bb(C,";",n),0<=n?C.substring(R,n):C.substr(R);n=bb(C,R,n+R.length)}return""}function Ra(){var n,C=0;if(null===(n=
+        null===lb||void 0===lb?void 0:lb.performance)||void 0===n?0:n.now)try{C=Math.round(lb.performance.now())}catch(R){}return 0>=C||isNaN(C)||!isFinite(C)?(new Date).getTime()-Fa():C}function Fa(){var n=0;try{n=Math.round(lb.performance.timeOrigin)}catch(R){}if(0>=n||isNaN(n)||!isFinite(n)){n=lb.dT_;var C=0;try{C=lb.performance.timing.navigationStart}catch(R){}n=0>=C||isNaN(C)||!isFinite(C)?n.gAST():C}return n}function Oa(){return"dtAdkSettings"}function ra(){}function V(n,C){return function(){n.apply(C,
+        arguments)}}function P(n){if(!(this instanceof P))throw new TypeError("Promises must be constructed via new");if("function"!==typeof n)throw new TypeError("not a function");this.V=0;this.Ya=!1;this.Y=void 0;this.ga=[];Ca(n,this)}function sa(n,C){for(;3===n.V;)n=n.Y;0===n.V?n.ga.push(C):(n.Ya=!0,P.W(function(){var R=1===n.V?C.Sc:C.Tc;if(null===R)(1===n.V?ia:va)(C.Ga,n.Y);else{try{var qa=R(n.Y)}catch(qb){va(C.Ga,qb);return}ia(C.Ga,qa)}}))}function ia(n,C){try{if(C===n)throw new TypeError("A promise cannot be resolved with itself.");
+        if(C&&("object"===typeof C||"function"===typeof C)){var R=C.then;if(C instanceof P){n.V=3;n.Y=C;X(n);return}if("function"===typeof R){Ca(V(R,C),n);return}}n.V=1;n.Y=C;X(n)}catch(qa){va(n,qa)}}function va(n,C){n.V=2;n.Y=C;X(n)}function X(n){2===n.V&&0===n.ga.length&&P.W(function(){n.Ya||P.xa(n.Y)});for(var C=0,R=n.ga.length;C<R;C++)sa(n,n.ga[C]);n.ga=null}function xa(n,C,R){this.Sc="function"===typeof n?n:null;this.Tc="function"===typeof C?C:null;this.Ga=R}function Ca(n,C){var R=!1;try{n(function(qa){R||
+        (R=!0,ia(C,qa))},function(qa){R||(R=!0,va(C,qa))})}catch(qa){R||(R=!0,va(C,qa))}}function ja(){return lb.Promise||P}function pa(n,C,R,qa){"undefined"===typeof qa&&(qa=ha(C,!0));"boolean"===typeof qa&&(qa=ha(C,qa));if(n===lb)hf?hf(C,R,qa):De&&De("on"+C,R);else if(Yf&&lb.dT_.iIO(n,21))Ff.call(n,C,R,qa);else if(n.addEventListener)if(n===lb.document||n===lb.document.documentElement)Sg.call(n,C,R,qa);else try{hf.call(n,C,R,qa)}catch(Aa){n.addEventListener(C,R,qa)}else n.attachEvent&&n.attachEvent("on"+
+        C,R);qa=!1;for(var qb=wc.length;0<=--qb;){var Jb=wc[qb];if(Jb.object===n&&Jb.event===C&&Jb.J===R){qa=!0;break}}qa||lb.dT_.apush(wc,{object:n,event:C,J:R})}function da(n,C,R,qa){for(var qb=wc.length;0<=--qb;){var Jb=wc[qb];if(Jb.object===n&&Jb.event===C&&Jb.J===R){wc.splice(qb,1);break}}"undefined"===typeof qa&&(qa=ha(C,!0));"boolean"===typeof qa&&(qa=ha(C,qa));n===lb?qe?qe(C,R,qa):De&&De("on"+C,R):n.removeEventListener?n===lb.document||n===lb.document.documentElement?sh.call(n,C,R,qa):qe.call(n,C,
+        R,qa):n.detachEvent&&n.detachEvent("on"+C,R)}function ha(n,C){var R=!1;try{var qa=lb.dT_;if(hf&&-1<qa.aIOf(Zj,n)){var qb=Object.defineProperty({},"passive",{get:function(){R=!0}});hf("test",Wa,qb)}}catch(Jb){}return R?{passive:!0,capture:C}:C}function la(){for(var n=wc,C=n.length;0<=--C;){var R=n[C];da(R.object,R.event,R.J)}wc=[];lb.dT_.cx()}function O(){return Te?new Te:Tg?new Tg("MSXML2.XMLHTTP.3.0"):lb.XMLHttpRequest?new lb.XMLHttpRequest:new lb.ActiveXObject("MSXML2.XMLHTTP.3.0")}function Ka(){Tg=
+        Te=void 0}function fa(){for(var n=0,C=0,R=arguments.length;C<R;C++)n+=arguments[C].length;n=Array(n);var qa=0;for(C=0;C<R;C++)for(var qb=arguments[C],Jb=0,Aa=qb.length;Jb<Aa;Jb++,qa++)n[qa]=qb[Jb];return n}function S(n){return!!n&&/{\s+\[native code]/.test(Function.prototype.toString.call(n))}function Da(n,C){for(var R,qa=[],qb=2;qb<arguments.length;qb++)qa[qb-2]=arguments[qb];return void 0!==Function.prototype.bind&&S(Function.prototype.bind)?(R=Function.prototype.bind).call.apply(R,fa([n,C],qa)):
+        function(){for(var Jb=0;Jb<arguments.length;Jb++);return n.apply(C,(qa||[]).concat(Array.prototype.slice.call(arguments)||[]))}}function Ja(){if(Ug){var n=new Ug;if(re)for(var C=0,R=bi;C<R.length;C++){var qa=R[C];void 0!==re[qa]&&(n[qa]=Da(re[qa],n))}return n}return Tc?new Tc("MSXML2.XMLHTTP.3.0"):lb.XMLHttpRequest?new lb.XMLHttpRequest:new lb.ActiveXObject("MSXML2.XMLHTTP.3.0")}function Na(){return Ee}function Y(){return se}function Ba(){return ci}function Pa(){return lg}function U(){return"dtAdk"}
+        function J(){return Sd}function t(n){-1<lb.dT_.io(n,"^")&&(n=n.split("^^").join("^"),n=n.split("^dq").join('"'),n=n.split("^rb").join(">"),n=n.split("^lb").join("<"),n=n.split("^p").join("|"),n=n.split("^e").join("="),n=n.split("^s").join(";"),n=n.split("^c").join(","),n=n.split("^bs").join("\\"));return n}function F(){return Vg}function y(n){Vg=n}function I(n){var C=lb.dT_,R=C.scv("rid");C=C.scv("rpid");R&&(n.rid=R);C&&(n.rpid=C)}function ma(n){if(n=n.xb){n=t(n);try{Vg=new RegExp(n)}catch(C){}}}
+        function N(n){var C=n,R=Math.pow(2,32);return function(){C=(1664525*C+1013904223)%R;return C/R}}function Ia(n,C){return isNaN(n)||isNaN(C)?Math.floor(33*mg()):Math.floor(mg()*(C-n+1))+n}function Za(n,C){return parseInt(n,C||10)}function xb(n){return document.getElementsByTagName(n)}function yb(n){var C=n.length;if("number"===typeof C)n=C;else{C=0;for(var R=2048;n[R-1];)C=R,R+=R;for(var qa=7;1<R-C;)qa=(R+C)/2,n[qa-1]?C=qa:R=qa;n=n[qa]?R:C}return n}function Va(n){n=encodeURIComponent(n);var C=[];if(n)for(var R=
+        0;R<n.length;R++){var qa=n.charAt(R);Ib(C,ak[qa]||qa)}return C.join("")}function pb(n){if(!n)return"";var C=lb.crypto||lb.msCrypto;if(C&&-1===bb(navigator.userAgent,"Googlebot"))C=C.getRandomValues(new Uint8Array(n));else{C=[];for(var R=0;R<n;R++)C.push(Ia(0,32))}n=[];for(R=0;R<C.length;R++){var qa=Math.abs(C[R]%32);n.push(String.fromCharCode(qa+(9>=qa?48:55)))}return n.join("")}function B(){return 0<=lb.dT_.io(navigator.userAgent,"RuxitSynthetic")}function T(n){var C={};n=n.split("|");for(var R=
+        0;R<n.length;R++){var qa=n[R].split("=");2===qa.length&&(C[qa[0]]=decodeURIComponent(qa[1].replace(/\+/g," ")))}return C}function ya(){var n=Xa("csu");return(n.indexOf("dbg")===n.length-3?n.substr(0,n.length-3):n)+"_"+Xa("app")+"_Store"}function Sa(n,C,R){C=C||{};n=n.split("|");for(var qa=0;qa<n.length;qa++){var qb=n[qa],Jb=bb(n[qa],"=");-1===Jb?C[qb]="1":(qb=n[qa].substring(0,Jb),C[qb]=n[qa].substring(Jb+1,n[qa].length))}!R&&(R=C,n=R.spc)&&(qa=document.createElement("textarea"),qa.innerHTML=n,R.spc=
+        qa.value);return C}function Q(n){var C;return null!==(C=nc[n])&&void 0!==C?C:ng[n]}function ca(n){n=Q(n);return"false"===n||"0"===n?!1:!!n}function ta(n){var C=Q(n);C=Za(C);isNaN(C)&&(C=ng[n]);return C}function Xa(n){return String(Q(n)||"")}function ib(n,C){nc[n]=String(C)}function hb(n){nc=n;n=Wg;for(var C in n)n.hasOwnProperty(C)&&n[C]&&(nc[C]=n[C]);return nc}function kb(n){nc[n]=0>bb(nc[n],"#"+n.toUpperCase())?nc[n]:""}function Bb(n){var C=n.agentUri;C&&-1<bb(C,"_")&&(C=/([a-zA-Z]*)[0-9]{0,4}_([a-zA-Z_0-9]*)_[0-9]+/g.exec(C))&&
+        C.length&&2<C.length&&(n.csu=C[1],n.featureHash=C[2])}function lc(n){var C=n.domain||"";var R=(R=location.hostname)&&C?R===C||-1!==R.indexOf("."+C,R.length-("."+C).length):!0;if(!C||!R){n.domainOverride||(n.domainOverride=location.hostname+","+C,delete n.domain);var qa=za();qa&&(n.domain=qa);R||Ib(te,{type:"dpi",severity:"Warning",text:'Configured domain "'+C+'" is invalid for current location "'+location.hostname+'". Agent will use "'+n.domain+'" instead.'})}}function Gb(n,C){lc(n);nc.pVO&&(n.pVO=
+        nc.pVO);C||(C=n.bp||ng.bp,n.bp2&&(C=2),n.bp=String(C))}function xc(){return nc}function Z(n){return ng[n]===Q(n)}function Ua(){var n=lb.dT_;return!n.bcv("coo")||n.bcv("cooO")||n.iSM()}function Qa(n,C){if(Ua()&&(!Ue().overloadPrevention||B()))return n.apply(this,C||[])}function Cb(n,C){try{var R=og;R&&R.setItem(n,C)}catch(qa){}}function eb(n,C){Qa(Cb,[n,C])}function ub(n){try{var C=og;if(C)return C.getItem(n)}catch(R){}return null}function Ab(n){try{var C=og;C&&C.removeItem(n)}catch(R){}}function zb(n){document.cookie=
+        n+'="";path=/'+(Xa("domain")?";domain="+Xa("domain"):"")+"; expires=Thu, 01 Jan 1970 00:00:01 GMT;"}function Wb(n,C,R){var qa=1,qb=0;do document.cookie=n+'=""'+(C?";domain="+C:"")+";path="+R.substr(0,qa)+"; expires=Thu, 01 Jan 1970 00:00:01 GMT;",qa=R.indexOf("/",qa),qb++;while(-1!==qa&&5>qb)}function za(){var n=document.domain||"";if(!n)return"";n=n.split(".").reverse();var C=n.length;if(1>=C)return"";for(var R=n[0],qa="",qb=1;qb<=C;qb++)if(La("dTValidationCookie")){qa=R;break}else{n[qb]&&(R=n[qb]+
+        "."+R);var Jb="dTValidationCookie=dTValidationCookieValue;path=/;domain="+R;Jb+=cb();document.cookie=Jb}Wb("dTValidationCookie",qa,"/");return qa}function Ta(n,C,R,qa){Zf=!0;C||0===C?(C=String(C).replace(/[;\n\r]/g,"_"),n=n+"="+C+";path=/"+(Xa("domain")?";domain="+Xa("domain"):""),R&&(n+=";expires="+R.toUTCString()),n+=cb(),qa&&"https:"===location.protocol&&(n+=";Secure"),document.cookie=n):zb(n);Zf=!1}function cb(){var n=Xa("cssm");return"n"===n||"s"===n||"l"===n?";SameSite="+Ti[n]:""}function fb(n,
+        C,R,qa){Qa(Ta,[n,C,R,qa])}function wb(n){return 2<(null===n||void 0===n?void 0:n.split("$").length)?!1:/^[0-9A-Za-z_=:\$\+\/\.\-\*%\|]*$/.test(n)}function sb(){var n=La(Ee);n||((n=ub(Ee))&&wb(n)?Zb(n):n="");return wb(n)?n:""}function Zb(n){fb(Ee,n,void 0,ca("ssc"))}function Eb(n){return 32===n.length||12>=n.length?n:""}function ec(n){if(!isNaN(Number(n))){var C=Za(n);if(-99<=C&&99>=C)return n}return""}function Sb(n){var C={sessionId:"",pb:"",Fa:0},R=bb(n,"|"),qa=n;-1!==R&&(qa=n.substring(0,R));R=
+        bb(qa,"$");-1!==R?(C.sessionId=Eb(qa.substring(R+1)),C.pb=ec(qa.substring(0,R))):C.sessionId=Eb(qa);return C}function qc(n){var C={sessionId:"",pb:"",Fa:0};n=n.split("v"===n.charAt(0)?"_":"=");if(2<n.length&&0===n.length%2){var R=Number(n[1]);if(isNaN(R)||3>R)return C;R={};for(var qa=2;qa<n.length;qa++)R[n[qa]]=n[qa+1],qa++;R.sn?C.sessionId=Eb(R.sn):C.sessionId="hybrid";R.srv&&(C.pb=ec(R.srv));n=Number(R.ol);1===n&&(R=B(),qa=Ue(),R||(eb("dtDisabled","true"),qa.disabled=!0,qa.overloadPrevention=!0));
+        0<=n&&2>=n&&(C.Fa=n)}return C}function Nc(){try{Ui.apply(lb.parent,arguments)}catch(n){}}function Uc(){try{th.apply(lb.top,arguments)}catch(n){}}function Hc(n){var C=Array.prototype.slice.call(arguments,1);try{Vi.apply(n,C)}catch(R){}}function Zc(n){var C=Array.prototype.slice.call(arguments,1);try{di.apply(n,C)}catch(R){}}function uc(){var n=lb.dT_;Promise=ja();Te=lb.XMLHttpRequest;Tg=lb.ActiveXObject;var C;Ug=lb.XMLHttpRequest;Tc=lb.ActiveXObject;var R=null===(C=lb.XMLHttpRequest)||void 0===C?void 0:
+        C.prototype;if(R){re={};C=0;for(var qa=bi;C<qa.length;C++){var qb=qa[C];void 0!==R[qb]&&(re[qb]=R[qb])}}hf=lb.addEventListener;qe=lb.removeEventListener;Sg=lb.document.addEventListener;sh=lb.document.removeEventListener;Gf=lb.setTimeout;ei=lb.setInterval;jf||(Hf=lb.clearTimeout,pg=lb.clearInterval);n=n.iCE?n.iCE():navigator.cookieEnabled;R=1===qc(La(Oa())).Fa;ob();if(n){if(R||!("complete"!==document.readyState||lb.performance&&lb.performance.timing))return!1}else return!1;return!0}function ed(){return Qc()}
+        function Kd(n,C){function R(){delete qg[Jb];n.apply(this,arguments)}for(var qa=[],qb=2;qb<arguments.length;qb++)qa[qb-2]=arguments[qb];if("apply"in Gf){qa.unshift(R,C);var Jb=Gf.apply(lb,qa)}else Jb=Gf(R,C);qg[Jb]=!0;return Jb}function td(n){delete qg[n];"apply"in Hf?Hf.call(lb,n):Hf(n)}function Ib(n){for(var C=[],R=1;R<arguments.length;R++)C[R-1]=arguments[R];n.push.apply(n,C)}function ic(n){Ib(Fe,n)}function ac(n){for(var C=Fe.length;C--;)if(Fe[C]===n){Fe.splice(C,1);break}}function Pb(){return Fe}
+        function vc(n,C){return ei(n,C)}function Ac(n){pg(n)}function Ge(n,C){if(!Wi||!uh)return"";n=new Wi([n],{type:C});return uh(n)}function $d(n,C){return Xi?new Xi(n,C):void 0}function ue(n){"function"===typeof n&&Ib(Xg,n)}function Jc(){return Xg}function Td(){return bc}function kd(n){return function(){for(var C=[],R=0;R<arguments.length;R++)C[R]=arguments[R];if("number"!==typeof C[0]||!qg[C[0]])try{return n.apply(this,C)}catch(qa){return n(C[0])}}}function Ud(){return te}function fd(){lb.performance&&
+        (Qc=function(){return Math.round(Fa()+Ra())});if(!Qc||isNaN(Qc())||0>=Qc()||!isFinite(Qc()))Qc=function(){return(new Date).getTime()}}function ve(){jf&&(lb.clearTimeout=Hf,lb.clearInterval=pg,jf=!1)}function ae(n){if(n=n||sb()){var C=n.charAt(0);return"v"===C||"="===C?qc(n):Sb(n)}return{sessionId:"",pb:"",Fa:0}}function Ad(n){return ae(n).pb}function Wc(n){return ae(n).sessionId}function Ld(){return Vd}function Ve(){r(function(){Wc()||Zb(-1*Ia(2,21)+"$"+pb(32));Vd=Ad()||""})}function Bd(){return We}
+        function je(){var n=ta("vs"),C=ua();2<=n&&-1===C?C=0:1===n&&-1<C&&(C=-1);Kc(Cd(!0),void 0,C)}function Fb(n,C){C=Cd(C);for(var R=!1,qa=0;qa<C.length;qa++)C[qa].frameId===We&&(C[qa].H=n,R=!0);R||Ib(C,{frameId:We,H:n,Jb:-1,visitId:""});Kc(C)}function Kc(n,C,R){if(n){var qa=[];for(var qb=0;qb<n.length;qb++)if("-"!==n[qb].H){0<qb&&0<qa.length&&Ib(qa,"p");var Jb=Vd;Jb&&(Ib(qa,Jb),Ib(qa,"$"));Ib(qa,n[qb].frameId);Ib(qa,"h");Ib(qa,String(n[qb].H))}qa.length||(Xe&&(Xc(!0,"a",void 0),v(!1)),Vd=Ad()||"",Ib(qa,
+        Vd),Ib(qa,"$"),Ib(qa,We),Ib(qa,"h-"));n=C||Dd();Ib(qa,"v");Ib(qa,n);n=null!==R&&void 0!==R?R:ua();0<=n&&(Ib(qa,"e"),Ib(qa,String(n)));qa=qa.join("")}else qa="";qa||(Xe&&(Xc(!0,"a",void 0),v(!1)),Vd=Ad()||"",R=null!==R&&void 0!==R?R:ua(),qa=Vd+"$"+We+"h-v"+(C||Dd()+(0<=R?"e"+R:"")));fb(Sd,qa||"-",void 0,ca("ssc"))}function Cd(n){var C=La(Sd),R=[];if(C&&"-"!==C){var qa=C.split("p");C="";for(var qb=null,Jb=0;Jb<qa.length;Jb++){var Aa=qa[Jb],$c=bb(Aa,"$"),yc=bb(Aa,"h"),qd=bb(Aa,"v"),Wd=bb(Aa,"e");$c=
+        Aa.substring($c+1,yc);yc=-1!==qd?Aa.substring(yc+1,qd):Aa.substring(yc+1);C=C||-1!==qd?-1!==Wd?Aa.substring(qd+1,Wd):Aa.substring(qd+1):"";qb=qb||-1!==Wd?Aa.substring(Wd+1):null;(Aa=n)||(Aa=Za($c.split("_")[0]),qd=Qc()%fi,qd<Aa&&(qd+=fi),Aa=Aa+9E5>qd);Aa&&Ib(R,{frameId:$c,H:"-"===yc?"-":Za(yc),Jb:-1,visitId:""})}for(Jb=0;Jb<R.length;Jb++){R[Jb].visitId=C;n=R[Jb];qa=Za(qb||"");isNaN(qa)&&(qa=Za(ub(gd)||""));if(isNaN(qa)||-1>qa||qa>ta("mel"))qa=2<=ta("vs")?0:-1;n.Jb=qa}}return R}function ld(n,C){try{lb.localStorage&&
+        lb.localStorage.setItem(n,C)}catch(R){}}function ke(n){try{if(lb.localStorage)return lb.localStorage.getItem(n)}catch(C){}return null}function ad(n){try{lb.localStorage&&lb.localStorage.removeItem(n)}catch(C){}}function Dd(){return He()||Xc(!0,"c",void 0)}function He(){if(be()<=Qc())return Xc(!0,"t",void 0);var n=Ed();if(!n)return Xc(!0,"c",void 0);var C=gi.exec(n);if(!C||3!==C.length||32!==C[1].length||isNaN(Za(C[2])))return Xc(!0,"i",void 0);eb(Xb,n);return n}function Fd(n){var C=Qc(),R=we().Dc;
+        n&&(R=C);md(C+ce+"|"+R);hd()}function Ed(){var n,C;return null!==(C=null===(n=Cd(!0)[0])||void 0===n?void 0:n.visitId)&&void 0!==C?C:ub(Xb)}function le(n){if(n&&(n=Ed())&&(n=gi.exec(n))&&3===n.length&&isFinite(Number(n[2])))return n[1]+"-"+(Number(n[2])+1);n=pb(32);n=n.replace(/[0-9]/g,function(C){C=.1*Za(C);return String.fromCharCode(Math.floor(25*C+65))});return n+"-0"}function Ye(n){var C=Cd(!1),R=2<=ta("vs")?0:-1;Kc(C,n,R);eb(Xb,n);eb(gd,String(R));Fd(!0)}function nd(n,C,R,qa){return Xc(C,R,qa)}
+        function Ze(n,C,R){return Xc(n,C,R)}function Xc(n,C,R){n&&(kf=!0);n=Ed();R=le(R);Ye(R);for(var qa=0;qa<Gd.length;qa++)Gd[qa](R,kf,C,n);return R}function Md(n){Gd.push(n)}function hd(){Xd&&td(Xd);Xd=Kd(lf,be()-Qc())}function lf(){if(be()<=Qc()&&Ua()){var n="t"+(Qc()-be()),C=Ed(),R=le();Ye(R);for(var qa=0;qa<Gd.length;qa++)Gd[qa](R,kf,n,C);return!0}r(hd);return!1}function md(n){fb("rxvt",n,void 0,ca("ssc"));eb("rxvt",n)}function If(n){var C=La(n);C||(C=ub(n)||"");return C}function de(){var n=He()||
+        "";eb(Xb,n);n=If("rxvt");md(n);ad(gd);ad(Xb);ad("rxvt")}function we(){var n={Nd:0,Dc:0},C=If("rxvt");if(C)try{var R=C.split("|");2===R.length&&(n.Nd=parseInt(R[0],10),n.Dc=parseInt(R[1],10))}catch(qa){}return n}function be(){var n=we();return Math.min(n.Nd,n.Dc+Nd)}function x(n){ce=n}function v(n){void 0===n&&(n=!0);Xe=n}function w(){var n=kf;kf=!1;return n}function H(){lf()||Fd(!1)}function L(){var n,C;if(-1!==ua()&&2<=ta("vs")){var R=ua();R>=ta("mel")?Xc(!1,"e"+R,!0):(R++,Kc(Cd(!1),"",R),eb(gd,
+        String(R)),null===(C=null===(n=lb.MobileAgent)||void 0===n?void 0:n.incrementActionCount)||void 0===C?void 0:C.call(n))}}function ua(){var n=Cd(!0);if(1<=n.length&&!isNaN(n[0].Jb))return n[0].Jb;n=ub(gd)||"";n=Za(n);return isNaN(n)?2<=ta("vs")?0:-1:n}function r(n){Ua()?n():(mf||(mf=[]),Ib(mf,n))}function z(n){return Qa(n)}function G(){if(ca("coo")&&!Ua()){for(var n=0;n<mf.length;n++)Kd(mf[n],0);mf=[];ib("cooO",!0)}}function M(){if(ca("coo")&&Ua()){ib("cooO",!1);zb(Ee);zb(Sd);zb(lg);zb("dtSa");zb(U());
+        zb("rxVisitor");zb("rxvt");try{Ab(gd);Ab(Xb);Ab("rxvt");ad(gd);ad(Xb);ad("rxvt");var n=og;n&&(n.removeItem("rxVisitor"),n.removeItem(Ee));(n=Jf)&&n.removeItem(ya())}catch(C){}}}function ba(n){return document.cookie?document.cookie.split(n+"=").length-1:0}function Ha(n){var C=ba(n);if(1<C){var R=Xa("domain")||lb.location.hostname,qa=lb.location.hostname,qb=lb.location.pathname,Jb=0,Aa=0;Od.push(n);do{var $c=qa.substr(Jb);if($c!==R||"/"!==qb){Wb(n,$c===R?"":$c,qb);var yc=ba(n);yc<C&&(Od.push($c),C=
+        yc)}Jb=qa.indexOf(".",Jb)+1;Aa++}while(0!==Jb&&10>Aa&&1<C);Xa("domain")&&1<C&&Wb(n,"",qb)}}function $a(){Ha(Sd);Ha(Ee);Ha(lg);Ha("rxvt");0<Od.length&&Ib(te,{severity:"Error",type:"dcn",text:"Duplicate cookie name"+(1!==Od.length?"s":"")+" detected: "+Od.join(", ")});ic(function(n,C,R,qa){0<Od.length&&!C&&(n.av(qa,"dCN",Od.join(",")),Od=[]);0<nf.length&&!C&&(n.av(qa,"eCC",nf.join(",")),nf=[])})}function vb(n,C){if(!n||!n.length)return-1;if(n.indexOf)return n.indexOf(C);for(var R=n.length;R--;)if(n[R]===
+        C)return R;return-1}function mb(n){n&&(null===n||void 0===n?0:n.configurable)&&n.set&&n.get&&Object.defineProperty(document,"cookie",{get:function(){return n.get.call(document)},set:function(C){var R=C.split("=")[0];n.set.call(document,C);Zf?1<ba(R)&&Od.push(R):-1<vb(id,R)&&(nf.push(R),-1===vb(vh,R)&&(Ib(vh,R),Ib(te,{severity:"Error",type:"ecm",text:"Invalid modification of agent cookie "+R+" detected. Modifying Dynatrace cookies may result in missing or invalid data."})))}})}function gb(){var n=
+        La("rxVisitor");n&&45===(null===n||void 0===n?void 0:n.length)||(n=ke("rxVisitor")||ub("rxVisitor"),45!==(null===n||void 0===n?void 0:n.length)&&(Yi=!0,n=String(Qc()),n+=pb(45-n.length)));jb(n);return n}function jb(n){if(ca("dpvc")||ca("pVO"))eb("rxVisitor",n);else{var C=new Date;C.setFullYear(C.getFullYear()+2);Qa(ld,["rxVisitor",n])}fb("rxVisitor",n,C,ca("ssc"))}function Qb(){return Yi}function $b(n){var C=La("rxVisitor");zb("rxVisitor");Ab("rxVisitor");ad("rxVisitor");ib("pVO",!0);jb(C);n&&Qa(ld,
+        ["dt-pVO","1"]);de()}function Yb(){ad("dt-pVO");ca("pVO")&&(ib("pVO",!1),gb());Ab("rxVisitor");de()}function rc(n,C,R,qa,qb){var Jb=document.createElement("script");Jb.setAttribute("src",n);C&&Jb.setAttribute("defer","defer");R&&(Jb.onload=R);qa&&(Jb.onerror=qa);qb&&Jb.setAttribute("id",qb);Jb.setAttribute("crossorigin","anonymous");n=document.getElementsByTagName("script")[0];n.parentElement.insertBefore(Jb,n)}function Pd(n,C){return $e+"/"+(C||jd)+"_"+n+"_"+(ta("buildNumber")||Ue().version)+".js"}
+        function Yg(n,C){void 0===C&&(C=[]);if(!n||"object"!==typeof n&&"function"!==typeof n)return!1;var R="number"!==typeof C?C:[],qa=null,qb=[];switch("number"===typeof C?C:5){case 0:qa="Array";qb=["push"];break;case 1:qa="Boolean";break;case 2:qa="Number";break;case 3:qa="String";break;case 4:qa="Function";break;case 5:qa="Object";break;case 6:qa="Date";qb=["getTime"];break;case 7:qa="Error";qb=["name","message"];break;case 8:qa="Element";break;case 9:qa="HTMLElement";break;case 10:qa="HTMLImageElement";
+        qb=["complete"];break;case 11:qa="PerformanceEntry";break;case 12:qa="PerformanceTiming";break;case 13:qa="PerformanceResourceTiming";break;case 14:qa="PerformanceNavigationTiming";break;case 15:qa="CSSRule";qb=["cssText","parentStyleSheet"];break;case 16:qa="CSSStyleSheet";qb=["cssRules","insertRule"];break;case 17:qa="Request";qb=["url"];break;case 18:qa="Response";qb=["ok","status","statusText"];break;case 19:qa="Set";qb=["add","entries","forEach"];break;case 20:qa="Map";qb=["set","entries","forEach"];
+        break;case 21:qa="Worker";qb=["addEventListener","postMessage","terminate"];break;case 22:qa="XMLHttpRequest",qb=["open","send","setRequestHeader"]}C=qa;if(!C)return!1;qb=qb.length?qb:R;try{var Jb=!!lb[C]&&n instanceof lb[C],Aa=Object.prototype.toString.call(n);if(!R.length&&(Jb||Aa==="[object "+C+"]"))return!0}catch($c){}for(R=0;R<qb.length;R++)if(!(qb[R]in n))return!1;return!!qb.length}function Zi(){var n,C=lb.dT_;lb.dT_=(n={},n.di=0,n.version="10205201116183137",n.cfg=C?C.cfg:"",n.iCE=C?C.iCE:function(){return navigator.cookieEnabled},
+        n.ica=1,n.disabled=!1,n.overloadPrevention=!1,n.gx=O,n.cx=Ka,n.mp=Nc,n.mtp=Uc,n.mi=Hc,n.mw=Zc,n.gAST=Td,n.ww=$d,n.stu=Ge,n.nw=ed,n.apush=Ib,n.st=Kd,n.si=vc,n.aBPSL=ic,n.rBPSL=ac,n.gBPSL=Pb,n.aBPSCC=ue,n.gBPSCC=Jc,n.buildType="dynatrace",n.gSSV=ub,n.sSSV=eb,n.rSSV=Ab,n.rvl=ad,n.pn=Za,n.iVSC=wb,n.p3SC=qc,n.pLSC=Sb,n.io=bb,n.dC=zb,n.sC=fb,n.esc=Va,n.gSId=Ad,n.gDtc=Wc,n.gSC=sb,n.sSC=Zb,n.gC=La,n.cRN=Ia,n.cRS=pb,n.gEL=yb,n.gEBTN=xb,n.gSCN=Na,n.gPCHN=Y,n.gRHN=Ba,n.gPCCN=J,n.gLCN=Pa,n.gMSIDCN=U,n.cfgO=xc,
+        n.pCfg=T,n.pCSAA=Sa,n.cFHFAU=Bb,n.sCD=Gb,n.bcv=ca,n.ncv=ta,n.scv=Xa,n.stcv=ib,n.rplC=hb,n.cLSCK=ya,n.gFId=Bd,n.gBAU=Pd,n.iS=rc,n.eWE=r,n.oEIE=z,n.oEIEWA=Qa,n.eA=G,n.dA=M,n.gcSId=Ld,n.iNV=Qb,n.gVID=gb,n.dPV=$b,n.ePV=Yb,n.sVIdUP=v,n.sVTT=x,n.sVID=Ye,n.rVID=He,n.gVI=Dd,n.gNVIdN=Ze,n.gNVId=nd,n.gARnVF=w,n.cAUV=H,n.uVT=Fd,n.aNVL=Md,n.gPC=Cd,n.cPC=Fb,n.sPC=Kc,n.clB=ve,n.ct=td,n.aRI=I,n.iXB=ma,n.gXBR=F,n.sXBR=y,n.de=t,n.cCL=ob,n.gEC=ua,n.iEC=L,n.rnw=Ra,n.gto=Fa,n.ael=pa,n.rel=da,n.sup=ha,n.cuel=la,n.iAEPOO=
+        Ua,n.iSM=B,n.aIOf=vb,n.gMSCN=Oa,n.gxwp=Ja,n.iIO=Yg,n.prm=ja,n.cI=Ac,n.gidi=Ud,n.iDCV=Z,n)}function $i(){try{if(!uc())return!1;Zi();try{Jf=lb.localStorage,og=lb.sessionStorage}catch(Kf){}fd();bc=Qc();Fe=[];te=[];qg={};jf||(lb.clearTimeout=kd(Hf),lb.clearInterval=kd(pg),jf=!0);var n=Math.random(),C=Math.random();aj=0!==n&&0!==C&&n!==C;if(-1!==bb(navigator.userAgent,"Googlebot")){var R=performance.getEntriesByType("navigation")[0];n=1;if(R){for(var qa in R)if("number"===typeof R[qa]&&R[qa]){var qb=R[qa];
+        n=1===n?qb:n+qb}var Jb=Math.floor(1E4*n)}else Jb=n;mg=N(Jb)}else aj?mg=Math.random:mg=N(Qc());We=bc%fi+"_"+Za(Ia(0,1E3)+"");var Aa;ng=(Aa={},Aa.ade="",Aa.aew=!0,Aa.agentLocation="",Aa.agentname="",Aa.agentUri="",Aa.uana="data-dtname,data-dtName",Aa.app="",Aa.async=!1,Aa.ase=!1,Aa.auto=!1,Aa.bp1=!1,Aa.bp2=!1,Aa.bp=1,Aa.bs=!1,Aa.buildNumber=0,Aa.csprv=!1,Aa.ccNcss=!1,Aa.cg=!1,Aa.coo=!1,Aa.cooO=!1,Aa.cssm="0",Aa.cors=!1,Aa.csu="",Aa.cuc="",Aa.cux=!1,Aa.dataDtConfig="",Aa.debugName="",Aa.dvl=500,Aa.dASXH=
+        !1,Aa.disableCookieManager=!1,Aa.disableLogging=!1,Aa.dmo=!1,Aa.dpvc=!1,Aa.disableXhrFailures=!1,Aa.domain="",Aa.domainOverride="",Aa.doNotDetect="",Aa.ds=!0,Aa.dsndb=!1,Aa.dsss=!1,Aa.eni=!0,Aa.euf=!1,Aa.evl="",Aa.extblacklist="",Aa.exteventsoff=!1,Aa.fau=!0,Aa.fa=!1,Aa.featureHash="",Aa.ffi=!1,Aa.hvt=216E5,Aa.lastModification=0,Aa.lupr=!0,Aa.imm=!1,Aa.initializedModules="",Aa.ign="",Aa.instr="",Aa.iub="",Aa.lab=!1,Aa.legacy=!1,Aa.lmut=!0,Aa.lzwd=!1,Aa.lzwe=!1,Aa.mb="",Aa.md="",Aa.mdp="",Aa.mdl="",
+        Aa.mdn=5E3,Aa.bismepl=2E3,Aa.mel=200,Aa.mepp=10,Aa.moa=30,Aa.mrt=3,Aa.mpl=1024,Aa.mmds=2E4,Aa.msl=3E4,Aa.mhl=4E3,Aa.name="",Aa.ncw=!1,Aa.ntd=!1,Aa.oat=180,Aa.ote=!1,Aa.owasp=!1,Aa.perfbv=1,Aa.prfSmpl=0,Aa.pt=!0,Aa.pui=!1,Aa.pVO=!1,Aa.raxeh=!0,Aa.rdnt=0,Aa.reportUrl="dynaTraceMonitor",Aa.restoreTimeline=!1,Aa.rid="",Aa.ridPath="",Aa.rpid="",Aa.rt=1E4,Aa.rtl=0,Aa.rtp=2,Aa.rtt=1E3,Aa.rtu=200,Aa.rx_visitID="",Aa.sl=100,Aa.spc="",Aa.srbbv=1,Aa.srbw=!0,Aa.srad=!0,Aa.srmr=100,Aa.srms="1,1,,,",Aa.srsr=1E5,
+        Aa.srtbv=3,Aa.srtd=1,Aa.srtr=500,Aa.srvr="",Aa.srvi=0,Aa.srwo=!1,Aa.srre="",Aa.ssc=!1,Aa.st=3E3,Aa.svNB=!1,Aa.syntheticConfig=!1,Aa.tal=0,Aa.tp="500,50,3",Aa.tt=100,Aa.tvc=3E3,Aa.uam=!1,Aa.useNewCookies=!1,Aa.uxdce=!1,Aa.uxdcw=1500,Aa.uxrgce=!0,Aa.uxrgcm="100,25,300,3;100,25,300,3",Aa.vcfi=!0,Aa.vcit=1E3,Aa.vct=50,Aa.vcv=1,Aa.vcx=50,Aa.vs=1,Aa.xb="",Aa.chw="",Aa.xmut=!0,Aa.xt=0,Aa.srcss=!1,Aa.srmcrl=1,Aa.srmcrv=10,Aa.nosr=!1,Aa.bisaoi=!1,Aa.bisCmE="",Aa.mcepsl=100,Aa);a:{var $c=Ue().cfg;nc={reportUrl:"dynaTraceMonitor",
+        initializedModules:"",csu:"dtagent",dataDtConfig:"string"===typeof $c?$c:""};Ue().cfg=nc;nc.csu="ruxitagentjs";var yc=nc.dataDtConfig;yc&&-1===bb(yc,"#CONFIGSTRING")&&(Sa(yc,nc),kb("domain"),kb("auto"),kb("app"),Bb(nc));var qd=xb("script"),Wd=yb(qd),Qd=-1===bb(nc.dataDtConfig||"","#CONFIGSTRING")?nc:null;if(0<Wd)for(Jb=0;Jb<Wd;Jb++)b:{R=void 0;var xd=qd[Jb];qa=Qd;if(xd.attributes){var rg=nc.csu+"_bootstrap.js";qb=/.*\/jstag\/.*\/.*\/(.*)_bs(_dbg)?.js$/;Aa=qa;var Ie=xd.src,$f=null===Ie||void 0===Ie?
+        void 0:Ie.indexOf(rg),sg=xd.attributes.getNamedItem("data-dtconfig");if(sg){$c=Ie;var Lf=sg.value;yc={};nc.legacy="1";if($c){var of=/([a-zA-Z]*)[0-9]{0,4}_([a-zA-Z_0-9]*)_([0-9]+)/g.exec($c);if(null===of||void 0===of?0:of.length)yc.csu=of[1],yc.featureHash=of[2],yc.agentLocation=$c.substr(0,bb($c,of[1])-1),yc.buildNumber=of[3]}Lf&&Sa(Lf,yc,!0);lc(yc);R=yc;if(!qa)Aa=R;else if(!R.syntheticConfig){Qd=R;break b}}R||(R=nc);if(0<$f){var wh=$f+rg.length+5;R.app=Ie.length>wh?Ie.substr(wh):"Default%20Application"}else if(Ie){var Mf=
+        qb.exec(Ie);Mf&&(R.app=Mf[1])}Qd=Aa}else Qd=qa}if(Qd)for(var Zg in Qd)Qd.hasOwnProperty(Zg)&&(qd=Zg,nc[qd]=Qd[qd]);if(nc.rx_visitID){var tg=nc.rx_visitID;tg&&(Ue().rx_visitID=tg)}var af=ya();try{var ug=(Qd=Jf)&&Qd.getItem(af);if(ug){var pf=T(ug),xe=Sa(pf.config||""),vg=nc.lastModification||"0",$g=Za((xe.lastModification||pf.lastModification||"0").substr(0,13)),xh="string"===typeof vg?Za(vg.substr(0,13)):vg;if(!vg||$g>=xh)if(xe.agentname=pf.name,xe.agentUri?Bb(xe):(xe.csu=pf.name,xe.featureHash=pf.featureHash),
+        Gb(xe,!0),ma(xe),I(xe),$g>(nc.lastModification||0)){var wg=nc.auto,hi=nc.legacy;nc=hb(xe);nc.auto=wg;nc.legacy=hi}}}catch(Kf){}Gb(nc);try{var ii=nc.ign;if(ii&&(new RegExp(ii)).test(lb.location.href)){document.dT_=lb.dT_=void 0;var Je=!1;break a}}catch(Kf){}nc.useNewCookies&&(Sd="rxpc",Ee="rxsession",lg="rxlatency",se="x-rxpc",ci="x-rxreferer");if(B()){var me=navigator.userAgent,yh=bb(me,"RuxitSynthetic")+14+5,ji=me.substring(yh);if(-1!==bb(ji," c")){var bj=ji.split(" ");for(af=0;af<bj.length;af++){var Nf=
+        bj[af];if("c"===Nf.charAt(0)){var zh=Nf.substr(1),ki=zh.indexOf("="),li=zh.substring(0,ki),bf=zh.substring(ki+1);li&&bf&&(Wg[li]=bf)}}}hb(nc)}Je=!0}if(!Je)return!1;$a();try{xg=Ue().disabled||!!ub("dtDisabled")}catch(Kf){}var Yd;if(!(Yd=Xa("agentLocation")))a:{var ah=Xa("agentUri");if(ah||document.currentScript){var Of=ah||document.currentScript.src;if(Of){Je=Of;var cj=-1===bb(Je,"_bs")&&-1===bb(Je,"_bootstrap")&&-1===bb(Je,"_complete")?1:2,Yc=Of.lastIndexOf("/");for(Je=0;Je<cj&&-1!==Yc;Je++)Of=Of.substr(0,
+        Yc),Yc=Of.lastIndexOf("/");Yd=Of;break a}}var ne=location.pathname;Yd=ne.substr(0,ne.lastIndexOf("/"))}$e=Yd;jd=Xa("agentname")||Xa("csu")||"ruxitagentjs";"true"===La("dtUseDebugAgent")?0>jd.indexOf("dbg")&&(jd=Xa("debugName")||jd+"dbg"):jd=Xa("name")||jd;if(!ca("auto")&&!ca("legacy")&&!xg){var Ah=Xa("agentUri")||Pd(Xa("featureHash")),yg;if(!(yg=ca("async")||"complete"===document.readyState)){var ag=lb.navigator.userAgent,bg=ag.indexOf("MSIE ");yg=0<bg?9>=parseInt(ag.substring(bg+5,ag.indexOf(".",
+        bg)),10):!1}yg?rc(Ah,ca("async"),void 0,void 0,"dtjsagent"):(document.write('<script id="dtjsagentdw" type="text/javascript" src="'+Ah+'">\x3c/script>'),document.getElementById("dtjsagentdw")||rc(Ah,ca("async"),void 0,void 0,"dtjsagent"))}-1!==bb(lb.location.href,"_DT_RENDERING_")&&(Ue().RMOD={conf:Ob,ignore:zg,ID:"_DT_RENDERING_"},$e&&rc(Pd("R"),!0,void 0,void 0,"dtjsagent"));La(Ee)&&ib("cooO",!0);Ve();ib("pVO",!!ke("dt-pVO"));r(gb);ce=18E5;Nd=ta("hvt")||216E5;Qa(je);Qa(Fb,[1]);vh=[];id=[se,Ee,lg,
+        "rxvt",U(),Sd];if(ca("cg"))try{mb(Object.getOwnPropertyDescriptor(Document.prototype,"cookie")||Object.getOwnPropertyDescriptor(HTMLDocument.prototype,"cookie"))}catch(Kf){}}catch(Kf){return!1}return!0}function Ue(){return lb.dT_}var lb="undefined"!==typeof window?window:self,Pf=setTimeout;P.prototype["catch"]=function(n){return this.then(null,n)};P.prototype.then=function(n,C){var R=new this.constructor(ra);sa(this,new xa(n,C,R));return R};P.prototype["finally"]=function(n){var C=this.constructor;
+        return this.then(function(R){return C.resolve(n()).then(function(){return R})},function(R){return C.resolve(n()).then(function(){return C.reject(R)})})};P.all=function(n){return new P(function(C,R){function qa($c,yc){try{if(yc&&("object"===typeof yc||"function"===typeof yc)){var qd=yc.then;if("function"===typeof qd){qd.call(yc,function(Wd){qa($c,Wd)},R);return}}qb[$c]=yc;0===--Jb&&C(qb)}catch(Wd){R(Wd)}}if(!n||"undefined"===typeof n.length)throw new TypeError("Promise.all accepts an array");var qb=
+        Array.prototype.slice.call(n);if(0===qb.length)return C([]);for(var Jb=qb.length,Aa=0;Aa<qb.length;Aa++)qa(Aa,qb[Aa])})};P.resolve=function(n){return n&&"object"===typeof n&&n.constructor===P?n:new P(function(C){C(n)})};P.reject=function(n){return new P(function(C,R){R(n)})};P.race=function(n){return new P(function(C,R){for(var qa=0,qb=n.length;qa<qb;qa++)n[qa].then(C,R)})};P.W="function"===typeof setImmediate&&function(n){setImmediate(n)}||function(n){Pf(n,0)};P.xa=function(n){"undefined"!==typeof console&&
+        console&&console.warn("Possible Unhandled Promise Rejection:",n)};var hf,qe,Sg,sh,De=lb.attachEvent,Yf=lb.Worker,Ff=Yf&&Yf.prototype.addEventListener,wc=[],Zj=["touchstart","touchend","scroll"],Te,Tg,Ug,Tc,bi="abort getAllResponseHeaders getResponseHeader open overrideMimeType send setRequestHeader".split(" "),re,Sd="dtPC",Ee="dtCookie",se="x-dtpc",ci="x-dtreferer",lg="dtLatC",Vg,mg,aj,ak=new (function(){return function(){this["!"]="%21";this["~"]="%7E";this["*"]="%2A";this["("]="%28";this[")"]="%29";
+        this["'"]="%27";this.$="%24";this[";"]="%3B";this[","]="%2C"}}()),Wg={},ng,nc={},Ag,Ti=(Ag={},Ag.l="Lax",Ag.s="Strict",Ag.n="None",Ag),Zf=!1,Vi=lb.postMessage,di=lb.Worker&&lb.Worker.prototype.postMessage,Ui=lb.parent.postMessage,th=lb.top.postMessage,Xi=lb.Worker,Wi=lb.Blob,uh=lb.URL&&lb.URL.createObjectURL,Hf,pg,Gf,ei,jf=!1,Fe,Xg=[],te=[],bc,Jf,og,qg={},Qc,Vd,We,fi=6E8,gd="rxec",Xb="rxvisitid",gi=/([A-Z]+)-([0-9]+)/,Gd=[],ce,Nd,kf=!1,Xd,Xe=!1,mf=[],Od=[],nf=[],id=[],vh=[],Yi=!1,xg,$e,jd,Ob={childList:!0,
+        subtree:!0,attributes:!0,attributeOldValue:!0},zg=["_DT_RENDERING_"];(function(n){var C,R;n=n||0>(null===(C=navigator.userAgent)||void 0===C?void 0:C.indexOf("RuxitSynthetic"));if(!lb.dT_||!lb.dT_.cfg||"string"!==typeof lb.dT_.cfg||"initialized"in lb.dT_&&lb.dT_.initialized)null===(R=lb.console)||void 0===R?void 0:R.log("InitConfig not found or agent already initialized! This is an injection issue."),lb.dT_&&(lb.dT_.di=3);else if(n&&!$i()){try{delete lb.dT_}catch(qa){lb.dT_=void 0}ob()&&lb.console.log("JsAgent initCode initialization failed!")}})(!1)})();}).call(this);
+        
+        </script>
+
     <div id="info">
         Analyze apparent wind in changing wind, speed and heading conditions.
     </div>
-
-    <script type="module">
-
-        import * as THREE from './three.module.js';
-        import Stats from './stats.module.js';
-        import { STLLoader } from './STLLoader.js';
-        import { OrbitControls } from "./OrbitControls.js";
-        import { GUI } from './dat.gui.module.js';
-        import { Water } from './Water.js';
-        import { Sky } from './Sky.js';
-
-
-        let showAll = true;
-
-        let container, stats;
-
-        let camera, controls, cameraTarget, scene, renderer;
-        let water, sun, mesh;
-
-        let boat, mast, sailtop, sailfoot;
-        let lastMastrotation = 0;
-
-        let windfield = [];
-        let lastWindSpeed = 0;
-
-        let apparentwindfield = [];
-
-
-        boat = null;
-
-        const boatParams = {
-            mastrotation: 0.0,
-            heading: 0.0,
-            speed: 5.0
-        }
-
-        const windParams = {
-            speed: 5.0
-        }
-
-
-        init();
-        animate();
-
-        function init() {
-
-            container = document.createElement('div');
-            document.body.appendChild(container);
-
-
-            //renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer = new THREE.WebGLRenderer();
-            renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            //renderer.outputEncoding = THREE.sRGBEncoding;
-
-            renderer.shadowMap.enabled = true;
-
-            container.appendChild(renderer.domElement);
-
-
-            const fov = 75;
-            const near = 0.1;
-            const far = 100;
-            //camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, near, far);
-            //camera.position.set(2, 0, 3);
-
-            camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 20000);
-            camera.position.set(5, 5, 20);
-
-            const cameraHelper = new THREE.CameraHelper(camera);
-
-
-            //cameraTarget = new THREE.Vector3(0, 0, 0);
-
-            const COLOR_WATER = 0x0077be;
-
-            scene = new THREE.Scene();
-            //scene.background = new THREE.Color(0x72645b);
-            //scene.fog = new THREE.Fog(0x72645b, 2, 15);
-
-            scene.add(cameraHelper);
-
-            // renderer
-
-
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.maxPolarAngle = Math.PI * 0.495;
-            controls.target.set(0, 10, 0);
-            controls.minDistance = 1.0;
-            controls.maxDistance = 10000.0;
-            controls.update();
-            //camera.position.set( 0, 20, 100 );
-            //camera.position.copy(cameraTarget);
-
-
-
-            // Ground
-            /*const plane = new THREE.Mesh(
-                new THREE.PlaneBufferGeometry(40000, 40000),
-                new THREE.MeshPhongMaterial({ color: COLOR_WATER, specular: 0x101010, opacity: 0.1 })
-            );
-            plane.rotation.x = - Math.PI / 2;
-            plane.position.y = 0;
-            scene.add(plane);
-
-            plane.receiveShadow = true;*/
-
-
-            //
-
-            sun = new THREE.Vector3();
-
-            // Water
-
-            const waterGeometry = new THREE.PlaneBufferGeometry(10000, 10000);
-
-            water = new Water(
-                waterGeometry,
-                {
-                    textureWidth: 512,
-                    textureHeight: 512,
-                    waterNormals: new THREE.TextureLoader().load('./waternormals.jpg', function (texture) {
-
-                        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-
-                    }),
-                    alpha: 1.0,
-                    sunDirection: new THREE.Vector3(),
-                    sunColor: 0xffffff,
-                    waterColor: 0x001e0f,
-                    distortionScale: 3.7,
-                    fog: scene.fog !== undefined
-                }
-            );
-
-            water.rotation.x = - Math.PI / 2;
-
-            if (showAll) {
-                scene.add(water);
-            }
-
-            // Skybox
-
-            const sky = new Sky();
-            sky.scale.setScalar(10000);
-            scene.add(sky);
-
-            const skyUniforms = sky.material.uniforms;
-
-            skyUniforms['turbidity'].value = 10;
-            skyUniforms['rayleigh'].value = 2;
-            skyUniforms['mieCoefficient'].value = 0.005;
-            skyUniforms['mieDirectionalG'].value = 0.8;
-
-            const parameters = {
-                inclination: 0.28,
-                azimuth: 0.379
-            };
-
-            const pmremGenerator = new THREE.PMREMGenerator(renderer);
-
-            function updateSun() {
-
-                const theta = Math.PI * (parameters.inclination - 0.5);
-                const phi = 2 * Math.PI * (parameters.azimuth - 0.5);
-
-                sun.x = Math.cos(phi);
-                sun.y = Math.sin(phi) * Math.sin(theta);
-                sun.z = Math.sin(phi) * Math.cos(theta);
-
-                sky.material.uniforms['sunPosition'].value.copy(sun);
-                water.material.uniforms['sunDirection'].value.copy(sun).normalize();
-
-                scene.environment = pmremGenerator.fromScene(sky).texture;
-
-            }
-
-            updateSun();
-
-            //
-
-            /*const geometry = new THREE.BoxBufferGeometry(30, 30, 30);
-            const material = new THREE.MeshStandardMaterial({ roughness: 0 });
-
-            mesh = new THREE.Mesh(geometry, material);
-            scene.add(mesh);
-*/
-            //
-
-
-            //
-
-            stats = new Stats();
-            container.appendChild(stats.dom);
-
-            // GUI
-
-            const gui = new GUI();
-
-
-            const folderSky = gui.addFolder('Sky');
-            folderSky.add(parameters, 'inclination', 0, 0.5, 0.0001).onChange(updateSun);
-            folderSky.add(parameters, 'azimuth', 0, 1, 0.0001).onChange(updateSun);
-            folderSky.open();
-
-            const waterUniforms = water.material.uniforms;
-
-            const folderWater = gui.addFolder('Water');
-            folderWater.add(waterUniforms.distortionScale, 'value', 0, 8, 0.1).name('distortionScale');
-            folderWater.add(waterUniforms.size, 'value', 0.1, 10, 0.1).name('size');
-            folderWater.add(waterUniforms.alpha, 'value', 0.9, 1, .001).name('alpha');
-            folderWater.open();
-
-
-            const folderBoat = gui.addFolder('Boat');
-            folderBoat.add(boatParams, 'mastrotation', -90, 90, 1).name('mastrotation');
-            folderBoat.add(boatParams, 'heading', -180, 180, 1).name('heading');
-            folderBoat.add(boatParams, 'speed', 0, 30, 1).name('speed');
-            folderBoat.open();
-
-            const folderWind = gui.addFolder('Wind');
-            folderWind.add(windParams, 'speed', 0, 30, 1).name('speed');
-            folderWind.open();
-
-            // Wind
-
-            const windGroup = new THREE.Group();
-
-            // radius — Radius of the cone at the base. Default is 1.
-            // height — Height of the cone. Default is 1.
-            // radialSegments — Number of segmented faces around the circumference of the cone. Default is 8
-            // heightSegments — Number of rows of faces along the height of the cone. Default is 1.
-            // openEnded — A Boolean indicating whether the base of the cone is open or capped. Default is false, meaning capped.
-            // thetaStart — Start angle for first segment, default = 0 (three o'clock position).
-            // thetaLength — The central angle, often called theta, of the circular sector. The default is 2*Pi, which makes for a complete cone.
-            let windgeometry = new THREE.ConeGeometry(0.1, 0.2, 12);
-            let windmaterial = new THREE.MeshPhongMaterial({ color: 0x0000FF, opacity: 0.25, transparent: true });
-            let windcone;
-            windcone = new THREE.Mesh(windgeometry, windmaterial);
-            windcone.position.set(0, 10, 0)
-            windcone.rotation.set(Math.PI / 2, 0, Math.PI / 2);
-
-            let pos, height;
-            for (height = 1; height < 11; height++) {
-                windfield[height] = [];
-                for (pos = 0; pos <= 10; pos++) {
-                    let clone = windcone.clone();
-                    clone.position.set(0, height, pos - 5);
-                    windfield[height][pos] = clone;
-                    windGroup.add(clone);
-                }
-            }
-            recalcWindField(windParams.speed);
-
-            for (let height = 0; height < 11; height+= 0.5) {
-                let clone = windcone.clone();
-                clone.position.set(0, height, -0.5);
-                apparentwindfield[height*2] = clone;
-                scene.add(clone);
-            }
-
-            //windGroup.rotateOnAxis();
-            windGroup.position.set(7.5, 0, 0);
-            scene.add(windGroup);
-
-
-            const boxgeometry = new THREE.BoxBufferGeometry(30, 30, 30);
-            const boxmaterial = new THREE.MeshStandardMaterial({ roughness: 0 });
-
-            let boxmesh = new THREE.Mesh(boxgeometry, boxmaterial);
-            //scene.add( boxmesh );
-
-            // Boat
-            const boatmaterial = new THREE.MeshPhongMaterial({ color: 0xAAAAAA, specular: 0x111111, shininess: 200 });
-            const loader = new STLLoader();
-            const BOATSCALE = new THREE.Vector3(0.001, 0.001, 0.001);
-
-            // Colored binary STL
-            loader.load('./hull.stl', function (geometry) {
-
-                let meshMaterial = boatmaterial;
-
-                if (geometry.hasColors) {
-
-                    meshMaterial = new THREE.MeshPhongMaterial({ opacity: geometry.alpha, vertexColors: true });
-
-                }
-
-                boat = new THREE.Mesh(geometry, meshMaterial);
-
-                boat.position.set(0, 0.5, 0);
-                boat.rotation.set(- Math.PI / 2, 0, 0);
-                boat.scale.copy(BOATSCALE);
-                //mesh.scale.set(0.0001, 0.0001, 0.0001);
-
-                const axes = new THREE.AxesHelper();
-                axes.material.depthTest = false;
-                axes.renderOrder = 1;
-                axes.scale.set(1000, 1000, 1000);
-                boat.add(axes);
-
-
-                boat.castShadow = true;
-                boat.receiveShadow = true;
-
-                scene.add(boat);
-
-                // mast height 9050mm
-                loader.load('./mast.stl', function (geometry) {
-
-                    let meshMaterial = boatmaterial;
-
-                    if (geometry.hasColors) {
-
-                        meshMaterial = new THREE.MeshPhongMaterial({ opacity: geometry.alpha, vertexColors: true });
-
-                    }
-
-                    mast = new THREE.Mesh(geometry, meshMaterial);
-
-                    mast.position.set(-1100, 35, +9270);
-                    mast.rotation.set(- Math.PI / 2, 0, - 2 * Math.PI / 360 * 4);
-
-                    mast.castShadow = true;
-                    mast.receiveShadow = true;
-
-                    const axes = new THREE.AxesHelper();
-                    axes.material.depthTest = false;
-                    axes.renderOrder = 1;
-                    axes.scale.set(1000, 1000, 1000);
-                    mast.add(axes);
-
-                    boat.add(mast);
-
-                });
-
-
-
-            });
-
-
-            // Lights
-
-            scene.add(new THREE.HemisphereLight(0x443333, 0x111122));
-
-            addShadowedLight(1, 1, 1, 0xffffff, 1.35);
-            addShadowedLight(0.5, 1, - 1, 0xffaa00, 1);
-
-
-            // stats
-
-            stats = new Stats();
-            container.appendChild(stats.dom);
-
-            //
-
-            window.addEventListener('resize', onWindowResize, false);
-
-        }
-
-        function addShadowedLight(x, y, z, color, intensity) {
-
-            const directionalLight = new THREE.DirectionalLight(color, intensity);
-            directionalLight.position.set(x, y, z);
-            scene.add(directionalLight);
-
-            directionalLight.castShadow = true;
-
-            const d = 1;
-            directionalLight.shadow.camera.left = - d;
-            directionalLight.shadow.camera.right = d;
-            directionalLight.shadow.camera.top = d;
-            directionalLight.shadow.camera.bottom = - d;
-
-            directionalLight.shadow.camera.near = 1;
-            directionalLight.shadow.camera.far = 4;
-
-            directionalLight.shadow.bias = - 0.002;
-
-        }
-
-        // obj - your object (THREE.Object3D or derived)
-        // point - the point of rotation (THREE.Vector3)
-        // axis - the axis of rotation (normalized THREE.Vector3)
-        // theta - radian value of rotation
-        // pointIsWorld - boolean indicating the point is in world coordinates (default = false)
-        function rotateAboutPoint(obj, point, axis, theta, pointIsWorld) {
-            pointIsWorld = (pointIsWorld === undefined) ? false : pointIsWorld;
-
-            if (pointIsWorld) {
-                obj.parent.localToWorld(obj.position); // compensate for world coordinate
-            }
-
-            obj.position.sub(point); // remove the offset
-            obj.position.applyAxisAngle(axis, theta); // rotate the POSITION
-            obj.position.add(point); // re-add the offset
-
-            if (pointIsWorld) {
-                obj.parent.worldToLocal(obj.position); // undo world coordinates compensation
-            }
-
-            obj.rotateOnAxis(axis, theta); // rotate the OBJECT
-        }
-
-        function onWindowResize() {
-
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-
-            renderer.setSize(window.innerWidth, window.innerHeight);
-
-        }
-
-        function animate() {
-
-            requestAnimationFrame(animate);
-
-            //controls.update();
-            render();
-            //renderer.render(scene, camera);
-
-            stats.update();
-
-        }
-
-
-        function render() {
-
-            //const timer = Date.now() * 0.0005;
-
-            const time = performance.now() * 0.0025;
-
-            //camera.position.x = Math.cos(timer) * 3;
-            //camera.position.z = Math.sin(timer) * 3;
-
-            if (boat) {
-                //boat.position.y = Math.sin( time ) * 20 + 5;
-                boat.rotation.x = - Math.PI / 2 + Math.sin(time) * 0.01;
-                boat.rotation.y = Math.cos(time) * 0.034;
-                boat.rotation.z = Math.cos(time) * 0.01 - Math.sin(time) * 0.02  - boatParams.heading * Math.PI / 180;
-                if (boatParams.speed >= 13) {
-                    boat.position.set(0, 0.6, 0); // foiling height
-                } else {
-                    boat.position.set(0, 0.15, 0); // non-foiling
-                }
-
-                //mast.rotation.y = boatParams.mastrotation * Math.PI / 180.0;
-                mast.rotateY((boatParams.mastrotation - lastMastrotation) * Math.PI / 180.0);
-                lastMastrotation = boatParams.mastrotation;
-                //mast.rotation.y = Math.PI / 4;
-                //console.log("mast rotation: " + boatParams.mastrotation);
-
-                recalcWindField(windParams.speed);
-                recalcApparentWindField(windParams.speed, boatParams.speed, boatParams.heading);
-            }
-
-            water.material.uniforms['time'].value += 1.0 / 60.0;
-
-            //camera.lookAt(cameraTarget);
-
-            renderer.render(scene, camera);
-
-        }
-
-        function recalcApparentWindField(windspeed, sog, cog) {
-            for (let height = 0; height < 11; height+= 0.5) {
-                let tws = windSheer(windspeed, height);
-                let aw = apparentWind(sog, cog, tws, 0);
-                let cone = apparentwindfield[height*2];
-                cone.scale.set(tws * 0.1, tws, tws * 0.1)
-                cone.rotation.set(0, - aw.awd * Math.PI / 180, Math.PI / 2);
-            }
-        }
-
-        function recalcWindField(windspeed) {
-            if (lastWindSpeed == windspeed)
-                return; 
-
-            let pos, height;
-            for (height = 1; height < 11; height++) {
-                let windspeedfactor = windSheer(windspeed, height);
-                for (pos = 0; pos <= 10; pos++) {
-                    windfield[height][pos].scale.set(windspeedfactor * 0.1, windspeedfactor, windspeedfactor * 0.1);
-                }
-            }
-
-            lastWindSpeed = windspeed;
-        }
-
-
-        //=========== setup speed conversions
-
-        function ms2kts(ms) {
-            return ms * 1.9438444924574;
-        }
-
-        function kts2ms(kts) {
-            return kts / 1.9438444924574;
-        }
-
-        // windspeed at 10m
-        // returns wind speed at target height
-        function windSheer(windspeed, height) {
-            // https://en.wikipedia.org/wiki/Wind_gradient
-            let v10 = kts2ms(windspeed);
-            let height10 = 10;
-            let hellman = 0.27; // alpha
-            let v = v10 * (Math.pow((height / height10), hellman));
-            //console.log(v);
-            return (ms2kts(v));
-
-            // location	α
-            // Unstable air above open water surface:	0.06
-            // Neutral air above open water surface:	0.10
-            // Unstable air above flat open coast:	0.11
-            // Neutral air above flat open coast:	0.16
-            // Stable air above open water surface:	0.27
-            // Unstable air above human inhabited areas:	0.27
-            // Neutral air above human inhabited areas:	0.34
-            // Stable air above flat open coast:	0.40
-            // Stable air above human inhabited areas:	0.60
-            return
-        }
-
-        // https://en.wikipedia.org/wiki/Apparent_wind
-        // sog ... speed over ground (boat speed)
-        // cog ... course over ground (boat direction in grad)
-        // tws ... true wind speed in kts
-        // twd ... true wind direction (grad)
-        // returns {
-        //    apparent wind speed, 
-        //    apparent wind-angle relative to boat, 
-        //    apparent winddirection}
-        function apparentWind(sog, cog, tws, twd) {
-            let twa = twd-cog;
-            if (twa < 0) {
-                twa = 360 + twa;
-            }
-            let A = Math.cos((twa*Math.PI/180));
-            let aws = Math.sqrt((tws*tws)+(sog*sog)+(2*tws*sog*A));
-            let B = Math.cos(twa*Math.PI/180);
-            let C = (((tws*B)+sog)/aws);
-            let D = Math.acos(C);
-            let awa = twa <= 0 || twa > 180 ? - D*180/Math.PI :  D*180/Math.PI;
-            let awd = cog + awa;
-            return { aws: aws, awa: awa, awd: awd};
-        }
-
-    </script>
+    <div id="loading" class="loading">
+        Loading...
+    </div>
+
+    <script type="module" src="simulator.js"></script>
 </body>
 
 </html>

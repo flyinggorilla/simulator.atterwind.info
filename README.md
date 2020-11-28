@@ -5,7 +5,7 @@ This simulation visualizes wind sheer and how it influences apparent wind at var
 ![simulator](simulator-screenshot-1.jpg "sdf")
 
 TODO:
-* vizualize sail
+* vizualize sail, and add "angle of attack" 
 * allow adjusting wind-sheer to stable or gusty wind-conditions
 
 ### Credits go to great sources used in this project:
