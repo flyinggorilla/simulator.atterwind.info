@@ -4,7 +4,7 @@ const express = require('express')
 
 const mode = process.env.NODE_ENV; // set to "production" when in prod
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
-var listenPort = 3000;
+var listenPort = 3001;
 var isProduction = (mode == 'production');
 if (isProduction)
     listenPort = process.env.PORT;

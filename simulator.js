@@ -238,10 +238,12 @@ function init() {
     // openEnded — A Boolean indicating whether the base of the cone is open or capped. Default is false, meaning capped.
     // thetaStart — Start angle for first segment, default = 0 (three o'clock position).
     // thetaLength — The central angle, often called theta, of the circular sector. The default is 2*Pi, which makes for a complete cone.
+    let windcone = new THREE.Group();
     let windgeometry = new THREE.ConeGeometry(0.1, 0.2, 12);
     let windmaterial = new THREE.MeshPhongMaterial({ color: 0x0000FF, opacity: 0.5, transparent: true });
-    let windcone;
-    windcone = new THREE.Mesh(windgeometry, windmaterial);
+    let windconemesh = new THREE.Mesh(windgeometry, windmaterial);
+    windconemesh.position.set(0, -0.1, 0)
+    windcone.add(windconemesh);
     windcone.position.set(0, 10, 0)
     windcone.rotation.set(Math.PI / 2, 0, Math.PI / 2);
 
@@ -259,7 +261,7 @@ function init() {
 
     for (let height = 0; height < 11; height += 0.5) {
         let clone = windcone.clone();
-        clone.position.set(0, height, -0.5);
+        clone.position.set(0, height, 0);
         apparentwindfield[height * 2] = clone;
         scene.add(clone);
     }
@@ -369,6 +371,8 @@ function init() {
                 mast.add(axes);
             }
 
+            rigSail(mast);
+
             boat.add(mast);
 
         });
@@ -376,7 +380,6 @@ function init() {
 
 
     });
-
 
     // Lights
 
@@ -396,6 +399,86 @@ function init() {
     window.addEventListener('resize', onWindowResize, false);
 
 }
+
+function rigSail(mast) {
+    const tackheight = 600;
+    const mastheight = 9040;
+    const decksweeper = 700;
+    
+    let sail = new THREE.Group();
+    const sailgeometry = new THREE.Geometry();
+    /*sailgeometry.vertices.push(
+        new THREE.Vector3(0, 0,  0),  // 0  Luff-Mastfoot
+        new THREE.Vector3(0, 700,  0),  // 1 Decksweeper
+        new THREE.Vector3(0, 1500,  600),  // 2 Main-Tack
+        new THREE.Vector3(0,  300,  9040),  // 3 Top-Leech
+        new THREE.Vector3(0,  0,  9040),  // 4 Luff-Mast-Top
+        );*/
+
+    let vindex;
+    const vmax = 10;
+    sailgeometry.vertices.push(
+        new THREE.Vector3(0, 0,  0),  // 0  Luff-Mastfoot
+        new THREE.Vector3(0, decksweeper,  0)  // 1 Decksweeper
+    );
+    for (vindex = 1; vindex <= vmax; vindex++) {
+        let height = vindex * 1000 - tackheight;
+        if (vindex == 1) { // tack height
+            height = tackheight;
+        } else if ( vindex == vmax) { // top
+            height = mastheight;
+        }
+
+        sailgeometry.vertices.push(
+            new THREE.Vector3(0, 0,  height),  // 0  Luff-Mastfoot
+            new THREE.Vector3(0, decksweeper - (height-tackheight)/(mastheight-tackheight)*500, height),
+            new THREE.Vector3(0, 1500 - (height-tackheight)/(mastheight-tackheight)*1200, height)
+        ); 
+    }
+
+    sailgeometry.faces.push(
+        new THREE.Face3(0, 1, 2),
+        new THREE.Face3(1, 3, 2),
+        new THREE.Face3(1, 4, 3)
+    );      
+
+    for (vindex = 1; vindex < vmax; vindex++) {
+        let hindex;
+        for (hindex = 0; hindex < 2; hindex++) {
+            let index = vindex*3 + hindex;
+            sailgeometry.faces.push(
+                new THREE.Face3(index -1, index, index + 2),
+                new THREE.Face3(index, index +3, index + 2),
+            );      
+        }
+    }
+
+    let fcount = sailgeometry.faces.length;
+    for (let i = 0; i < fcount; i++) {
+        let hindex;
+        if (i % 2 == 0) {
+            sailgeometry.faces[i].color  = new THREE.Color(0.7, 0.5, 0.5);
+        } else {
+            sailgeometry.faces[i].color  = new THREE.Color(0.5, 0.5, 0.7);
+        }
+    }
+
+    //let sailmaterial = new THREE.MeshPhongMaterial({ vertexColors: THREE.FaceColors, color: 0xFFE0E0, opacity: 0.7, transparent: true, side: THREE.DoubleSide });
+    let sailmaterial = new THREE.MeshBasicMaterial({ vertexColors: THREE.FaceColors, side: THREE.DoubleSide, opacity: 0.7, transparent: true });
+    let sailmesh = new THREE.Mesh(sailgeometry, sailmaterial);
+    sail.rotation.set(Math.PI / 2, 0, Math.PI / 2);
+    sail.position.set(-130, 9040, 0)
+    sail.add(sailmesh);
+    mast.add(sail);
+
+
+    //windGroup.rotateOnAxis();
+    //windcone.position.set(0, 10, 0)
+    //windcone.rotation.set(Math.PI / 2, 0, Math.PI / 2);
+  
+  
+}
+
 
 function addShadowedLight(x, y, z, color, intensity) {
 
@@ -478,9 +561,11 @@ function render() {
         boat.rotation.y = Math.cos(time) * 0.034;
         boat.rotation.z = Math.cos(time) * 0.01 - Math.sin(time) * 0.02 - boatParams.heading * Math.PI / 180;
         if (boatParams.speed >= 13) {
-            boat.position.set(0, 0.6, 0); // foiling height
+            //boat.position.set(0, 0.6, 0); // foiling height
+            boat.position.y = 0.6; // foiling height
         } else {
-            boat.position.set(0, 0.15, 0); // non-foiling
+            //boat.position.set(0, 0.15, 0); // non-foiling
+            boat.position.y = 0.15; // foiling height ******************* CHANGE TO  .y
         }
 
         //mast.rotation.y = boatParams.mastrotation * Math.PI / 180.0;
@@ -508,6 +593,7 @@ function recalcApparentWindField(windspeed, sog, cog) {
         let cone = apparentwindfield[height * 2];
         cone.scale.set(aw.aws * 0.1, aw.aws, aw.aws * 0.1)
         cone.rotation.set(0, - aw.awd * Math.PI / 180, Math.PI / 2);
+        //cone.rotation.y = - aw.awd * Math.PI / 180;
     }
 }
 

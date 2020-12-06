@@ -2,12 +2,12 @@
     "name": "simulator",
     "version": "0.0.1",
     "private": true,
-    "main": "simulator.js",
+    "main": "simulator.node.js",
     "engines": {
         "node": "^10.x.x"
     },
     "scripts": {
-        "start": "node simulator.js",
+        "start": "node simulator.node.js",
         "deploy": "gcloud app deploy simulator"
     },
     "dependencies": {
