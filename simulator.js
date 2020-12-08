@@ -402,55 +402,59 @@ function init() {
 
 function rigSail(mast) {
     const tackheight = 600;
+    const tackMastDistance = 1500;
     const mastheight = 9040;
     const decksweeper = 700;
+    const topMastDistance = 300;
     
     let sail = new THREE.Group();
     const sailgeometry = new THREE.Geometry();
 
     const levelheight = 100; 
     const levels = Math.ceil(mastheight / levelheight);
-    const verticesPerLevel = 5;
+    const verticesPerLevel = 10;
 
-    let vindex;
-    const vmax = 10;
-    const verticesPerRow = 3;
-    sailgeometry.vertices.push(
-        new THREE.Vector3(0, 0,  0),  // 0  Luff-Mastfoot
-        new THREE.Vector3(0, decksweeper,  0)  // 1 Decksweeper
-    );
-    for (vindex = 1; vindex <= vmax; vindex++) {
-        let height = vindex * 1000 - tackheight;
-        if (vindex == 1) { // tack height
-            height = tackheight;
-        } else if ( vindex == vmax) { // top
+    for (let level = 0; level <= levels; level++) {
+        let height = level * levelheight;
+
+        if (height > mastheight) {
             height = mastheight;
         }
 
-        sailgeometry.vertices.push(
-            new THREE.Vector3(0, 0,  height),  // 0  Luff-Mastfoot
-            new THREE.Vector3(0, decksweeper -100 - (height-tackheight)/(mastheight-tackheight)*500, height),
-            new THREE.Vector3(0, 1500 - (height-tackheight)/(mastheight-tackheight)*1200, height)
-        ); 
-    }
+        // function defining lech sailshape
+        let width;
+        if (height <= tackheight) {
+            width = decksweeper + (tackMastDistance - decksweeper) * height / tackheight;
+        } else {
+            width = tackMastDistance - (tackMastDistance - topMastDistance) * (height - tackheight) / (mastheight - tackheight);
+        }
+
+        console.log("height: " + height + " width: " + width);
+
+        // add horizontal vertices 
+        for (let v = 0; v < verticesPerLevel; v++) {
+            let distance = width / (verticesPerLevel - 1) * v;
+            sailgeometry.vertices.push(
+                new THREE.Vector3(0, distance, height),
+            ); 
+    
+        }
+
+    } 
+
     let luffAxis = new THREE.Vector3(0, 0, 1);
     //let v0 = sailgeometry.vertices[0].clone();
     //let vrot = v0.sub(sailgeometry.vertices[2]).normalize();
-    sailgeometry.vertices[1].applyAxisAngle(luffAxis, Math.PI / 4);
+    //sailgeometry.vertices[1].applyAxisAngle(luffAxis, Math.PI / 4);
 
-    sailgeometry.faces.push(
-        new THREE.Face3(0, 1, 2),
-        new THREE.Face3(1, 3, 2),
-        new THREE.Face3(1, 4, 3)
-    );      
 
-    for (vindex = 1; vindex < vmax; vindex++) {
-        let hindex;
-        for (hindex = 0; hindex < 2; hindex++) {
-            let index = vindex*verticesPerRow + hindex;
+    for (let level = 0; level < levels; level++) {
+    //for (let level = 0; level <= 2; level++) {
+        for (let v = 1; v < verticesPerLevel; v++) {
+            let i = level*verticesPerLevel + v;
             sailgeometry.faces.push(
-                new THREE.Face3(index -1, index, index +  verticesPerRow - 1),
-                new THREE.Face3(index, index + verticesPerRow, index + verticesPerRow - 1),
+                new THREE.Face3(i -1, i, i +  verticesPerLevel - 1),
+                new THREE.Face3(i, i + verticesPerLevel, i + verticesPerLevel - 1),
             );      
         }
     }
