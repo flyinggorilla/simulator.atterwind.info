@@ -407,16 +407,14 @@ function rigSail(mast) {
     
     let sail = new THREE.Group();
     const sailgeometry = new THREE.Geometry();
-    /*sailgeometry.vertices.push(
-        new THREE.Vector3(0, 0,  0),  // 0  Luff-Mastfoot
-        new THREE.Vector3(0, 700,  0),  // 1 Decksweeper
-        new THREE.Vector3(0, 1500,  600),  // 2 Main-Tack
-        new THREE.Vector3(0,  300,  9040),  // 3 Top-Leech
-        new THREE.Vector3(0,  0,  9040),  // 4 Luff-Mast-Top
-        );*/
+
+    const levelheight = 100; 
+    const levels = Math.ceil(mastheight / levelheight);
+    const verticesPerLevel = 5;
 
     let vindex;
     const vmax = 10;
+    const verticesPerRow = 3;
     sailgeometry.vertices.push(
         new THREE.Vector3(0, 0,  0),  // 0  Luff-Mastfoot
         new THREE.Vector3(0, decksweeper,  0)  // 1 Decksweeper
@@ -431,10 +429,14 @@ function rigSail(mast) {
 
         sailgeometry.vertices.push(
             new THREE.Vector3(0, 0,  height),  // 0  Luff-Mastfoot
-            new THREE.Vector3(0, decksweeper - (height-tackheight)/(mastheight-tackheight)*500, height),
+            new THREE.Vector3(0, decksweeper -100 - (height-tackheight)/(mastheight-tackheight)*500, height),
             new THREE.Vector3(0, 1500 - (height-tackheight)/(mastheight-tackheight)*1200, height)
         ); 
     }
+    let luffAxis = new THREE.Vector3(0, 0, 1);
+    //let v0 = sailgeometry.vertices[0].clone();
+    //let vrot = v0.sub(sailgeometry.vertices[2]).normalize();
+    sailgeometry.vertices[1].applyAxisAngle(luffAxis, Math.PI / 4);
 
     sailgeometry.faces.push(
         new THREE.Face3(0, 1, 2),
@@ -445,10 +447,10 @@ function rigSail(mast) {
     for (vindex = 1; vindex < vmax; vindex++) {
         let hindex;
         for (hindex = 0; hindex < 2; hindex++) {
-            let index = vindex*3 + hindex;
+            let index = vindex*verticesPerRow + hindex;
             sailgeometry.faces.push(
-                new THREE.Face3(index -1, index, index + 2),
-                new THREE.Face3(index, index +3, index + 2),
+                new THREE.Face3(index -1, index, index +  verticesPerRow - 1),
+                new THREE.Face3(index, index + verticesPerRow, index + verticesPerRow - 1),
             );      
         }
     }
