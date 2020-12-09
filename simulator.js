@@ -28,7 +28,8 @@ let loadingComplete = false;
 const boatParams = {
     mastrotation: 0.0,
     heading: 0.0,
-    speed: 5.0
+    speed: 5.0,
+    testcheckbox: false //############# TEST
 }
 
 const windParams = {
@@ -76,7 +77,9 @@ function init() {
     //scene.background = new THREE.Color(0x72645b);
     //scene.fog = new THREE.Fog(0x72645b, 2, 15);
 
-    scene.add(cameraHelper);
+    if (showDetails) {
+        scene.add(cameraHelper);
+    }
 
     // renderer
 
@@ -218,9 +221,10 @@ function init() {
 
 
     const folderBoat = gui.addFolder('Boat');
-    folderBoat.add(boatParams, 'mastrotation', -90, 90, 1).name('mastrotation');
+    folderBoat.add(boatParams, 'mastrotation', -90, 90, 1).name('mastrotation'); // add .listen() to receive updates!!
     folderBoat.add(boatParams, 'heading', -180, 180, 1).name('heading');
     folderBoat.add(boatParams, 'speed', 0, 30, 1).name('speed');
+    folderBoat.add(boatParams, 'testcheckbox').name("testcheckbox"); //############# TEST
     folderBoat.open();
 
     const folderWind = gui.addFolder('Wind');
@@ -400,74 +404,96 @@ function init() {
 
 }
 
+const sailHeight = 9040; // mm
+const sailLevelHeight = 100; // mm
+const sailVerticesPerLevel = Math.floor(1000/sailLevelHeight);
+const sailLevels = Math.ceil(sailHeight / sailLevelHeight);
+let sailgeometry;
+
 function rigSail(mast) {
     const tackheight = 600;
     const tackMastDistance = 1500;
-    const mastheight = 9040;
     const decksweeper = 700;
     const topMastDistance = 300;
-    
+
+    let luffAxis = new THREE.Vector3(0, 0, 1);
+   
+
     let sail = new THREE.Group();
-    const sailgeometry = new THREE.Geometry();
+    sailgeometry = new THREE.Geometry();
 
-    const levelheight = 100; 
-    const levels = Math.ceil(mastheight / levelheight);
-    const verticesPerLevel = 10;
 
-    for (let level = 0; level <= levels; level++) {
-        let height = level * levelheight;
+    for (let level = 0; level <= sailLevels; level++) {
+        let height = level * sailLevelHeight;
 
-        if (height > mastheight) {
-            height = mastheight;
+        if (height > sailHeight) {
+            height = sailHeight;
         }
 
         // function defining lech sailshape
         let width;
+        let clipOffWidth;
         if (height <= tackheight) {
-            width = decksweeper + (tackMastDistance - decksweeper) * height / tackheight;
+            width = tackMastDistance;
+            clipOffWidth = decksweeper + (tackMastDistance - decksweeper) * height / tackheight;
+            //override
         } else {
-            width = tackMastDistance - (tackMastDistance - topMastDistance) * (height - tackheight) / (mastheight - tackheight);
+            width = tackMastDistance - (tackMastDistance - topMastDistance) * (height - tackheight) / (sailHeight - tackheight);
+            clipOffWidth = width;
         }
 
-        console.log("height: " + height + " width: " + width);
+        //console.log("height: " + height + " width: " + width);
 
         // add horizontal vertices 
-        for (let v = 0; v < verticesPerLevel; v++) {
-            let distance = width / (verticesPerLevel - 1) * v;
-            sailgeometry.vertices.push(
-                new THREE.Vector3(0, distance, height),
-            ); 
+        for (let v = 0; v < sailVerticesPerLevel; v++) {
+            let distance = width / (sailVerticesPerLevel - 1) * v;
+            
+            // clip off the sail under the tack
+            if (distance > clipOffWidth) {
+                distance = clipOffWidth;
+            }
+
+            //let depth = Math.sin(distance / width * Math.PI)*200 / ;
+            let depth = 0;
+            let vector = new THREE.Vector3(depth, distance, height);
+            //vector.applyAxisAngle(luffAxis, Math.sin(Math.PI * distance / width) / 2 );
+            sailgeometry.vertices.push(vector); 
     
         }
 
     } 
 
-    let luffAxis = new THREE.Vector3(0, 0, 1);
     //let v0 = sailgeometry.vertices[0].clone();
     //let vrot = v0.sub(sailgeometry.vertices[2]).normalize();
     //sailgeometry.vertices[1].applyAxisAngle(luffAxis, Math.PI / 4);
 
-
-    for (let level = 0; level < levels; level++) {
+    for (let level = 0; level < sailLevels; level++) {
     //for (let level = 0; level <= 2; level++) {
-        for (let v = 1; v < verticesPerLevel; v++) {
-            let i = level*verticesPerLevel + v;
-            sailgeometry.faces.push(
-                new THREE.Face3(i -1, i, i +  verticesPerLevel - 1),
-                new THREE.Face3(i, i + verticesPerLevel, i + verticesPerLevel - 1),
-            );      
-        }
-    }
+        for (let v = 1; v < sailVerticesPerLevel; v++) {
+            let i = level*sailVerticesPerLevel + v;
+            let f1 = new THREE.Face3(i -1, i, i +  sailVerticesPerLevel - 1);
+            let f2 = new THREE.Face3(i, i + sailVerticesPerLevel, i + sailVerticesPerLevel - 1);
+            if (level % 10 ) {
+                f1.color = new THREE.Color(0.7, 0.5, 0.5);
+                f2.color = new THREE.Color(0.5, 0.5, 0.7);
+            } else {
+                f1.color = new THREE.Color(0.8, 0.2, 0.2);
+                f2.color = new THREE.Color(0.8, 0.2, 0.2);
+            }
+            sailgeometry.faces.push(f1, f2);
 
-    let fcount = sailgeometry.faces.length;
-    for (let i = 0; i < fcount; i++) {
-        let hindex;
-        if (i % 2 == 0) {
-            sailgeometry.faces[i].color  = new THREE.Color(0.7, 0.5, 0.5);
-        } else {
-            sailgeometry.faces[i].color  = new THREE.Color(0.5, 0.5, 0.7);
         }
     }
+    sailgeometry.computeFaceNormals();
+    sailgeometry.computeVertexNormals();
+
+    // Fiberfoam MAST: The section is tapered from approx 160×60 mm in the bottom to 130×45 mm in the top. The mast base shape is identical to the common 145×60 mm section for the ease of interchanging parts.
+    let mastArea = (160 * sailHeight - 30 * sailHeight / 2) / 1000000; // m2
+    // this models mast has 140mm and is not tapered
+    mastArea = (140 * sailHeight) / 1000000; // m2
+    let sailArea = calcGeometryArea(sailgeometry) / 1000000; // m2
+
+    console.log("Sail+mast area: " +  (sailArea + mastArea) + "(" + sailArea + ", " + mastArea + ")"); // note, mast has about 1.8m2
 
     //let sailmaterial = new THREE.MeshPhongMaterial({ vertexColors: THREE.FaceColors, color: 0xFFE0E0, opacity: 0.7, transparent: true, side: THREE.DoubleSide });
     let sailmaterial = new THREE.MeshBasicMaterial({ vertexColors: THREE.FaceColors, side: THREE.DoubleSide, opacity: 0.7, transparent: true });
@@ -483,6 +509,15 @@ function rigSail(mast) {
     //windcone.rotation.set(Math.PI / 2, 0, Math.PI / 2);
   
   
+}
+
+function calcGeometryArea(geometry) {
+    let area = 0;
+    for (let face of geometry.faces) {
+        let triangle = new THREE.Triangle(geometry.vertices[face.a], geometry.vertices[face.b], geometry.vertices[face.c]);
+        area += triangle.getArea();
+    }
+    return area;
 }
 
 
@@ -575,8 +610,24 @@ function render() {
         }
 
         //mast.rotation.y = boatParams.mastrotation * Math.PI / 180.0;
-        mast.rotateY((boatParams.mastrotation - lastMastrotation) * Math.PI / 180.0);
-        lastMastrotation = boatParams.mastrotation;
+        if (boatParams.mastrotation != lastMastrotation) {
+            mast.rotateY((boatParams.mastrotation - lastMastrotation) * Math.PI / 180.0);
+            lastMastrotation = boatParams.mastrotation;
+
+            // adjust sailshape
+            let luffAxis = new THREE.Vector3(0, 0, 1);
+            for (let level = 0; level <= sailLevels; level++) {
+                for (let v = 1; v < sailVerticesPerLevel; v++) {
+                    let i = level*sailVerticesPerLevel + v;
+                    sailgeometry.vertices[i].applyAxisAngle(luffAxis, Math.PI / 20 );
+                }
+            } 
+            sailgeometry.verticesNeedUpdate = true;
+            //mast.updateMatrix();
+        }
+
+
+        
         //mast.rotation.y = Math.PI / 4;
         //console.log("mast rotation: " + boatParams.mastrotation);
 
