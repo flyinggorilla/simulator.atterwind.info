@@ -16,10 +16,8 @@ let camera, controls, cameraTarget, scene, renderer;
 let water, sun, mesh;
 
 let boat, mast, sailtop, sailfoot;
-let lastMastrotation = 0;
 
 let windfield = [];
-let lastWindSpeed = 0;
 
 let apparentwindfield = [];
 
@@ -33,7 +31,8 @@ const boatParams = {
 }
 
 const windParams = {
-    speed: 5.0
+    speed: 5.0,
+    hellman: 0.27
 }
 
 
@@ -98,7 +97,7 @@ function init() {
     // Ground
     /*const plane = new THREE.Mesh(
         new THREE.PlaneBufferGeometry(40000, 40000),
-        new THREE.MeshPhongMaterial({ color: COLOR_WATER, specular: 0x101010, opacity: 0.1 })
+        new THREE.MeshStandardMaterial({ color: COLOR_WATER, specular: 0x101010, opacity: 0.1 })
     );
     plane.rotation.x = - Math.PI / 2;
     plane.position.y = 0;
@@ -221,14 +220,15 @@ function init() {
 
 
     const folderBoat = gui.addFolder('Boat');
-    folderBoat.add(boatParams, 'mastrotation', -90, 90, 1).name('mastrotation'); // add .listen() to receive updates!!
-    folderBoat.add(boatParams, 'heading', -180, 180, 1).name('heading');
-    folderBoat.add(boatParams, 'speed', 0, 30, 1).name('speed');
-    folderBoat.add(boatParams, 'testcheckbox').name("testcheckbox"); //############# TEST
+    //folderBoat.add(boatParams, 'mastrotation', -90, 90, 1).name('mastrotation').listen(); // add .listen() to receive updates!!
+    folderBoat.add(boatParams, 'heading', -180, 180, 1).name('heading').onChange(recalc);
+    folderBoat.add(boatParams, 'speed', 0, 30, 1).name('speed').onChange(recalc);
+    //folderBoat.add(boatParams, 'testcheckbox').name("testcheckbox"); //############# TEST
     folderBoat.open();
 
     const folderWind = gui.addFolder('Wind');
-    folderWind.add(windParams, 'speed', 0, 30, 1).name('speed');
+    folderWind.add(windParams, 'speed', 0, 30, 1).name('speed').onChange(recalc);
+    folderWind.add(windParams, 'hellman', { unstable: 0.06, neutral: 0.10, stable: 0.27}).name('condition').onChange(recalc); 
     folderWind.open();
 
     // Wind
@@ -244,7 +244,7 @@ function init() {
     // thetaLength — The central angle, often called theta, of the circular sector. The default is 2*Pi, which makes for a complete cone.
     let windcone = new THREE.Group();
     let windgeometry = new THREE.ConeGeometry(0.1, 0.2, 12);
-    let windmaterial = new THREE.MeshPhongMaterial({ color: 0x0000FF, opacity: 0.5, transparent: true });
+    let windmaterial = new THREE.MeshStandardMaterial({ color: 0x0000FF, opacity: 0.5, transparent: true });
     let windconemesh = new THREE.Mesh(windgeometry, windmaterial);
     windconemesh.position.set(0, -0.1, 0)
     windcone.add(windconemesh);
@@ -261,7 +261,7 @@ function init() {
             windGroup.add(clone);
         }
     }
-    recalcWindField(windParams.speed);
+    recalcWindField(windParams.speed, windParams.hellman);
 
     for (let height = 0; height < 11; height += 0.5) {
         let clone = windcone.clone();
@@ -312,7 +312,7 @@ function init() {
     //scene.add( boxmesh );
 
     // Boat
-    const boatmaterial = new THREE.MeshPhongMaterial({ color: 0xAAAAAA, specular: 0x111111, shininess: 200 });
+    const boatmaterial = new THREE.MeshStandardMaterial({ color: 0xAAAAAA, specular: 0x111111, shininess: 200 });
     const loader = new STLLoader();
     const BOATSCALE = new THREE.Vector3(0.001, 0.001, 0.001);
 
@@ -323,7 +323,7 @@ function init() {
 
         if (geometry.hasColors) {
 
-            meshMaterial = new THREE.MeshPhongMaterial({ opacity: geometry.alpha, vertexColors: true });
+            meshMaterial = new THREE.MeshStandardMaterial({ opacity: geometry.alpha, vertexColors: true });
 
         }
 
@@ -355,7 +355,7 @@ function init() {
 
             if (geometry.hasColors) {
 
-                meshMaterial = new THREE.MeshPhongMaterial({ opacity: geometry.alpha, vertexColors: true });
+                meshMaterial = new THREE.MeshStandardMaterial({ opacity: geometry.alpha, vertexColors: true });
 
             }
 
@@ -405,7 +405,7 @@ function init() {
 }
 
 const sailHeight = 9040; // mm
-const sailLevelHeight = 100; // mm
+const sailLevelHeight = 200; // mm
 const sailVerticesPerLevel = Math.floor(1000/sailLevelHeight);
 const sailLevels = Math.ceil(sailHeight / sailLevelHeight);
 let sailgeometry;
@@ -431,32 +431,45 @@ function rigSail(mast) {
         }
 
         // function defining lech sailshape
-        let width;
+        let sailWidth;
         let clipOffWidth;
         if (height <= tackheight) {
-            width = tackMastDistance;
+            sailWidth = tackMastDistance;
             clipOffWidth = decksweeper + (tackMastDistance - decksweeper) * height / tackheight;
             //override
         } else {
-            width = tackMastDistance - (tackMastDistance - topMastDistance) * (height - tackheight) / (sailHeight - tackheight);
-            clipOffWidth = width;
+            sailWidth = tackMastDistance - (tackMastDistance - topMastDistance) * (height - tackheight) / (sailHeight - tackheight);
+            clipOffWidth = sailWidth;
         }
 
         //console.log("height: " + height + " width: " + width);
 
         // add horizontal vertices 
+        let lastrot, lastvector;
         for (let v = 0; v < sailVerticesPerLevel; v++) {
-            let distance = width / (sailVerticesPerLevel - 1) * v;
-            
-            // clip off the sail under the tack
-            if (distance > clipOffWidth) {
-                distance = clipOffWidth;
-            }
+            //let distance = sailWidth / (sailVerticesPerLevel - 1) * v;
+            let segwidth = sailWidth / (sailVerticesPerLevel - 1);
+            if (segwidth * v > clipOffWidth + 0.1) {
+                if (segwidth * v - clipOffWidth < segwidth - 0.1) {
+                    segwidth = segwidth * v - clipOffWidth;
+                 } else {
+                    segwidth = 0;
+                }
+                console.log("segwidth: " + segwidth)
+            } 
 
-            //let depth = Math.sin(distance / width * Math.PI)*200 / ;
-            let depth = 0;
-            let vector = new THREE.Vector3(depth, distance, height);
-            //vector.applyAxisAngle(luffAxis, Math.sin(Math.PI * distance / width) / 2 );
+            let vector, rot;
+            if (v == 0) {
+                vector = new THREE.Vector3(0, 0, height);
+                rot = Math.PI / 4;
+            } else {
+                rot = lastrot - Math.PI / 24;
+                vector = new THREE.Vector3(0, segwidth, 0);
+                //vector.applyAxisAngle(luffAxis, rot);
+                vector.add(lastvector);
+            }
+            lastvector = vector;
+            lastrot = rot;
             sailgeometry.vertices.push(vector); 
     
         }
@@ -495,7 +508,7 @@ function rigSail(mast) {
 
     console.log("Sail+mast area: " +  (sailArea + mastArea) + "(" + sailArea + ", " + mastArea + ")"); // note, mast has about 1.8m2
 
-    //let sailmaterial = new THREE.MeshPhongMaterial({ vertexColors: THREE.FaceColors, color: 0xFFE0E0, opacity: 0.7, transparent: true, side: THREE.DoubleSide });
+    //let sailmaterial = new THREE.MeshStandardMaterial({ vertexColors: THREE.FaceColors, color: 0xFFE0E0, opacity: 0.7, transparent: true, side: THREE.DoubleSide });
     let sailmaterial = new THREE.MeshBasicMaterial({ vertexColors: THREE.FaceColors, side: THREE.DoubleSide, opacity: 0.7, transparent: true });
     let sailmesh = new THREE.Mesh(sailgeometry, sailmaterial);
     sail.rotation.set(Math.PI / 2, 0, Math.PI / 2);
@@ -586,7 +599,14 @@ function animate() {
 
 }
 
+function recalc() {
+    //console.log("recalc");
+}
 
+
+
+let lastWindSpeed, lastBoatSpeed, lastBoatHeading, lastHellman, lastMastrotation = 0;
+let flatSailgeometry = null;
 function render() {
 
     //const timer = Date.now() * 0.0005;
@@ -609,30 +629,72 @@ function render() {
             boat.position.y = 0.15; // foiling height ******************* CHANGE TO  .y
         }
 
+        if (!flatSailgeometry) {
+            flatSailgeometry = sailgeometry.clone();
+        }
+
         //mast.rotation.y = boatParams.mastrotation * Math.PI / 180.0;
-        if (boatParams.mastrotation != lastMastrotation) {
-            mast.rotateY((boatParams.mastrotation - lastMastrotation) * Math.PI / 180.0);
-            lastMastrotation = boatParams.mastrotation;
+        //if (boatParams.mastrotation != lastMastrotation) {
+        if ((windParams.speed != lastWindSpeed) || (windParams.hellman != lastHellman) ||
+              (boatParams.heading != lastBoatHeading) || (boatParams.speed != lastBoatSpeed) ||
+             (boatParams.speed != lastBoatSpeed)) {
+
+            
+
+            //let q = Math.PI / 16 / sailVerticesPerLevel;
+            
+            let baserot = 0;
+            let deltarot = 0;
+            boatParams.mastrotation = 0;
+            if (boatParams.heading > 20) {
+                baserot = Math.PI / 8;
+                deltarot = - Math.PI / 24
+                boatParams.mastrotation = -30;
+            }
+            if (boatParams.heading < -20) {
+                baserot = - Math.PI / 8;
+                deltarot = Math.PI / 24
+                boatParams.mastrotation = 30;
+            }
 
             // adjust sailshape
             let luffAxis = new THREE.Vector3(0, 0, 1);
             for (let level = 0; level <= sailLevels; level++) {
+                let lastrot = baserot;
                 for (let v = 1; v < sailVerticesPerLevel; v++) {
                     let i = level*sailVerticesPerLevel + v;
-                    sailgeometry.vertices[i].applyAxisAngle(luffAxis, Math.PI / 20 );
+
+                    //let rot = q*sailVerticesPerLevel*(sailVerticesPerLevel-v)/2 - q*(sailVerticesPerLevel-v)*(sailVerticesPerLevel-v)/2;
+                    let rot = lastrot + deltarot;
+                    let segment = new THREE.Vector3();
+                    segment.subVectors(flatSailgeometry.vertices[i], flatSailgeometry.vertices[i-1]);
+                    segment.applyAxisAngle(luffAxis, rot);
+                    lastrot = rot;
+                    sailgeometry.vertices[i].addVectors(sailgeometry.vertices[i-1], segment);
                 }
             } 
-            sailgeometry.verticesNeedUpdate = true;
+            sailgeometry.verticesNeedUpdate = true; 
+            //rigSail();
+            mast.rotateY((boatParams.mastrotation - lastMastrotation) * Math.PI / 180.0);
+
             //mast.updateMatrix();
-        }
+            recalcWindField(windParams.speed, windParams.hellman);
+            recalcApparentWindField(windParams.speed, boatParams.speed, boatParams.heading, windParams.hellman);
+
+            lastMastrotation = boatParams.mastrotation;
+            lastBoatHeading = boatParams.heading;
+            lastBoatSpeed = boatParams.speed;
+            lastHellman = windParams.hellman;
+            lastWindSpeed = windParams.speed;
+
+
+        } 
 
 
         
         //mast.rotation.y = Math.PI / 4;
         //console.log("mast rotation: " + boatParams.mastrotation);
 
-        recalcWindField(windParams.speed);
-        recalcApparentWindField(windParams.speed, boatParams.speed, boatParams.heading);
     }
 
     water.material.uniforms['time'].value += 1.0 / 60.0;
@@ -643,9 +705,14 @@ function render() {
 
 }
 
-function recalcApparentWindField(windspeed, sog, cog) {
+function recalcSailShape(windspeed, sog, cog) {
+    let tws = windSheer(windspeed, height);
+    let aw = apparentWind(sog, cog, tws, 0);
+}
+
+function recalcApparentWindField(windspeed, sog, cog, hellman) {
     for (let height = 0; height < 11; height += 0.5) {
-        let tws = windSheer(windspeed, height);
+        let tws = windSheer(windspeed, height, hellman);
         let aw = apparentWind(sog, cog, tws, 0);
         let cone = apparentwindfield[height * 2];
         cone.scale.set(aw.aws * 0.1, aw.aws, aw.aws * 0.1)
@@ -654,19 +721,15 @@ function recalcApparentWindField(windspeed, sog, cog) {
     }
 }
 
-function recalcWindField(windspeed) {
-    if (lastWindSpeed == windspeed)
-        return;
+function recalcWindField(windspeed, hellman) {
 
     let pos, height;
     for (height = 1; height < 11; height++) {
-        let windspeedfactor = windSheer(windspeed, height);
+        let windspeedfactor = windSheer(windspeed, height, hellman);
         for (pos = 0; pos <= 10; pos++) {
             windfield[height][pos].scale.set(windspeedfactor * 0.1, windspeedfactor, windspeedfactor * 0.1);
         }
     }
-
-    lastWindSpeed = windspeed;
 }
 
 
@@ -682,16 +745,16 @@ function kts2ms(kts) {
 
 // windspeed at 10m
 // returns wind speed at target height
-function windSheer(windspeed, height) {
+function windSheer(windspeed, height , hellman) {
     // https://en.wikipedia.org/wiki/Wind_gradient
     let v10 = kts2ms(windspeed);
     let height10 = 10;
-    let hellman = 0.27; // alpha
+    //let hellman = 0.27; // alpha
     let v = v10 * (Math.pow((height / height10), hellman));
     //console.log(v);
     return (ms2kts(v));
 
-    // location	α
+    // location	α ... hellman constant for wind condition
     // Unstable air above open water surface:	0.06
     // Neutral air above open water surface:	0.10
     // Unstable air above flat open coast:	0.11
