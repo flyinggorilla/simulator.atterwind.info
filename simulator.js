@@ -621,17 +621,6 @@ function render() {
         boat.rotation.x = - Math.PI / 2 + Math.sin(time) * 0.01;
         boat.rotation.y = Math.cos(time) * 0.034;
         boat.rotation.z = Math.cos(time) * 0.01 - Math.sin(time) * 0.02 - boatParams.heading * Math.PI / 180;
-        if (boatParams.speed >= 13) {
-            //boat.position.set(0, 0.6, 0); // foiling height
-            boat.position.y = 0.6; // foiling height
-        } else {
-            //boat.position.set(0, 0.15, 0); // non-foiling
-            boat.position.y = 0.15; // foiling height ******************* CHANGE TO  .y
-        }
-
-        if (!flatSailgeometry) {
-            flatSailgeometry = sailgeometry.clone();
-        }
 
         //mast.rotation.y = boatParams.mastrotation * Math.PI / 180.0;
         //if (boatParams.mastrotation != lastMastrotation) {
@@ -640,31 +629,68 @@ function render() {
              (boatParams.speed != lastBoatSpeed)) {
 
             
-
-            //let q = Math.PI / 16 / sailVerticesPerLevel;
-            
+            if (boatParams.speed >= 13) {
+                //boat.position.set(0, 0.6, 0); // foiling height
+                boat.position.y = 0.6; // foiling height
+            } else {
+                //boat.position.set(0, 0.15, 0); // non-foiling
+                boat.position.y = 0.15; // foiling height ******************* CHANGE TO  .y
+            }
+            let mastFootOverWaterHeight = boat.position.y + 0.2;
+    
+            if (!flatSailgeometry) {
+                flatSailgeometry = sailgeometry.clone();
+            }
+        
+            //#####################################################################
+            // TODO: the higher the apparent wind speed, the flatter the sail!!! 
+            // mast and luff rotation
             let baserot = 0;
             let deltarot = 0;
+            let angleOfAttack = 0;
+            let dirfact = boatParams.heading < 0 ? 1.0 : -1.0; // direction factor 
             boatParams.mastrotation = 0;
-            if (boatParams.heading > 20) {
-                baserot = Math.PI / 8;
-                deltarot = - Math.PI / 24
-                boatParams.mastrotation = -30;
-            }
-            if (boatParams.heading < -20) {
-                baserot = - Math.PI / 8;
-                deltarot = Math.PI / 24
-                boatParams.mastrotation = 30;
+            if (Math.abs(boatParams.heading) > 155) {
+                baserot = Math.PI / 32 * dirfact;
+                deltarot = Math.PI / 18 * dirfact;
+                boatParams.mastrotation =  90 * dirfact;
+                angleOfAttack = 25 / 180 * Math.PI * dirfact; 
+            } else if (Math.abs(boatParams.heading) > 120) {
+                baserot = Math.PI / 8 * dirfact;
+                deltarot = Math.PI / 12 * dirfact;
+                boatParams.mastrotation =  90 * dirfact;
+                angleOfAttack = 25 / 180 * Math.PI * dirfact;
+            } else if (Math.abs(boatParams.heading) > 90) {
+                baserot = Math.PI / 8 * dirfact;
+                deltarot = Math.PI / 18 * dirfact;
+                boatParams.mastrotation =  75 * dirfact;
+                angleOfAttack = 25 / 180 * Math.PI * dirfact;
+            } else if (Math.abs(boatParams.heading) > 40) {
+                baserot = Math.PI / 8 * dirfact;
+                deltarot = Math.PI / 24 * dirfact;
+                boatParams.mastrotation =  35 * dirfact;
+                angleOfAttack = 25 / 180 * Math.PI * dirfact;
+            } else if (Math.abs(boatParams.heading) > 20) {
+                baserot = Math.PI / 8 * dirfact;
+                deltarot = Math.PI / 32 * dirfact;
+                boatParams.mastrotation =  10 * dirfact;
+                angleOfAttack = 25 / 180 * Math.PI * dirfact;
+            } else {
+                angleOfAttack = 0;
             }
 
             // adjust sailshape
             let luffAxis = new THREE.Vector3(0, 0, 1);
             for (let level = 0; level <= sailLevels; level++) {
                 let lastrot = baserot;
+
+                let overWaterHeight = level * sailLevelHeight + mastFootOverWaterHeight;
+                let tws = windSheer(windParams.speed, overWaterHeight / 1000.0, windParams.hellman);
+                let awa = apparentWind(boatParams.speed, boatParams.heading, tws, 0).awa;
+                lastrot = - awa / 180 * Math.PI - angleOfAttack + boatParams.mastrotation / 180 * Math.PI;   
+
                 for (let v = 1; v < sailVerticesPerLevel; v++) {
                     let i = level*sailVerticesPerLevel + v;
-
-                    //let rot = q*sailVerticesPerLevel*(sailVerticesPerLevel-v)/2 - q*(sailVerticesPerLevel-v)*(sailVerticesPerLevel-v)/2;
                     let rot = lastrot + deltarot;
                     let segment = new THREE.Vector3();
                     segment.subVectors(flatSailgeometry.vertices[i], flatSailgeometry.vertices[i-1]);
@@ -674,7 +700,6 @@ function render() {
                 }
             } 
             sailgeometry.verticesNeedUpdate = true; 
-            //rigSail();
             mast.rotateY((boatParams.mastrotation - lastMastrotation) * Math.PI / 180.0);
 
             //mast.updateMatrix();
@@ -785,7 +810,15 @@ function apparentWind(sog, cog, tws, twd) {
     let aws = Math.sqrt((tws * tws) + (sog * sog) + (2 * tws * sog * A));
     let B = Math.cos(twa * Math.PI / 180);
     let C = (((tws * B) + sog) / aws);
+    if (C > 1.0) { // fix rounding errors, C must not be greater 1.0, or the arcuscosine will fail
+        C = 1.0;
+    }
     let D = Math.acos(C);
+    //if (isNaN(D)) {
+    //    console.log("D IS NOT A NUMBER!" + C);
+    //    D = 0.0;
+    //}
+
     let awa = twa <= 0 || twa > 180 ? - D * 180 / Math.PI : D * 180 / Math.PI;
     let awd = cog + awa;
     return { aws: aws, awa: awa, awd: awd };
