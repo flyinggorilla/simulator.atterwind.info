@@ -412,7 +412,7 @@ let sailgeometry;
 
 function rigSail(mast) {
     const tackheight = 600;
-    const tackMastDistance = 1500;
+    const tackMastDistance = 1600;
     const decksweeper = 700;
     const topMastDistance = 300;
 
@@ -644,6 +644,8 @@ function render() {
         
             //#####################################################################
             // TODO: the higher the apparent wind speed, the flatter the sail!!! 
+            // TODO: create functions for mast-rotation in dependence on heading and (wind)speed
+            // TODO: create line for mainsheet and display length of it --- implies traveller!!!!
             // mast and luff rotation
             let baserot = 0;
             let deltarot = 0;
