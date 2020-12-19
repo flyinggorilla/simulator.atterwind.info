@@ -83,7 +83,7 @@ a, button, input, select {
 	padding: 10px;
 }
 
-.loading {
+#loading {
 	height:100%;
 	width:100%;
 	display: flex;
@@ -95,4 +95,17 @@ a, button, input, select {
 	font-size: large;
 	font-weight: bold;
 	color: grey;
+  }
+
+  #data {
+	position: fixed; 
+	opacity: 0.75;
+	bottom: 5px;
+	left: 5px;
+	right: 5px;
+	font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+	font-size: x-small;
+	font-weight: lighter;
+	color: whitesmoke;
+	line-height: normal;
   }

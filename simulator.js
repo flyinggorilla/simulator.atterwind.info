@@ -35,6 +35,8 @@ const windParams = {
     hellman: 0.27
 }
 
+let dataDiv;
+
 
 init();
 animate();
@@ -43,6 +45,8 @@ function init() {
 
     container = document.createElement('div');
     document.body.appendChild(container);
+
+    dataDiv = document.getElementById("data");
 
 
     //renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -681,6 +685,9 @@ function render() {
                 angleOfAttack = 0;
             }
 
+            let aw = apparentWind(boatParams.speed, boatParams.heading, windParams.speed, 0);
+            boatParams.mastrotation = calcMastRotation(aw) * dirfact;
+
             // adjust sailshape
             let luffAxis = new THREE.Vector3(0, 0, 1);
             for (let level = 0; level <= sailLevels; level++) {
@@ -730,6 +737,18 @@ function render() {
 
     renderer.render(scene, camera);
 
+}
+
+
+function calcMastRotation(apparentWind) {
+    let mastAngleOfAttack = 25.0 * Math.max(50-apparentWind.aws, 0)/50;
+    if (Math.abs(apparentWind.awa) < 10) {
+        mastAngleOfAttack = 0;
+    }
+    let mastRotation = Math.min(Math.abs(apparentWind.awa) + mastAngleOfAttack, 90.0); // add 10 degrees angle of attack to aparrent wind // TODO depends on wind-speed????
+    let actualMastAngleOfAttack = mastRotation - Math.abs(apparentWind.awa);
+    dataDiv.innerHTML = "Mast rotation: " + Math.round(mastRotation) + "° <br> Mast angle of attack: " + Math.round(actualMastAngleOfAttack) + "°" + "<br>Apparent wind speed: " + Math.round(apparentWind.aws) + "kts" + "<br>Apparent wind angle: " + Math.round(Math.abs(apparentWind.awa)) + "°";
+    return mastRotation;
 }
 
 function recalcSailShape(windspeed, sog, cog) {
@@ -801,27 +820,30 @@ function windSheer(windspeed, height , hellman) {
 // twd ... true wind direction (grad)
 // returns {
 //    apparent wind speed, 
-//    apparent wind-angle relative to boat, 
-//    apparent winddirection}
+//    apparent wind-angle relative to boat (grad), 
+//    apparent winddirection (grad)}
 function apparentWind(sog, cog, tws, twd) {
     let twa = twd - cog;
     if (twa < 0) {
         twa = 360 + twa;
     }
-    let A = Math.cos((twa * Math.PI / 180));
-    let aws = Math.sqrt((tws * tws) + (sog * sog) + (2 * tws * sog * A));
-    let B = Math.cos(twa * Math.PI / 180);
-    let C = (((tws * B) + sog) / aws);
-    if (C > 1.0) { // fix rounding errors, C must not be greater 1.0, or the arcuscosine will fail
-        C = 1.0;
+    let cosTWA = Math.cos((twa * Math.PI / 180));
+    let aws = Math.sqrt(tws**2 + sog**2 + (2 * tws * sog * cosTWA));
+    let apparentWindAngle = 0.0;
+    if (aws > 0.0) { // tws and boatspeed can annulate each other, or wind can be 0 
+        let Q = (tws * cosTWA + sog) / aws;
+        if (Q > 1.0) { // fix rounding errors, C must not be greater 1.0, or the arcuscosine will fail
+            Q = 1.0;
+        } else if (Q < -1.0) { // fix rounding errors, C must not be greater 1.0, or the arcuscosine will fail
+            Q = -1.0;
+        }
+        apparentWindAngle = Math.acos(Q);
+        if (isNaN(apparentWindAngle)) {
+            console.log("apparentWind(acosBeta=NaN Q:" + Q);
+        }
     }
-    let D = Math.acos(C);
-    //if (isNaN(D)) {
-    //    console.log("D IS NOT A NUMBER!" + C);
-    //    D = 0.0;
-    //}
 
-    let awa = twa <= 0 || twa > 180 ? - D * 180 / Math.PI : D * 180 / Math.PI;
+    let awa = twa <= 0 || twa > 180 ? - apparentWindAngle * 180 / Math.PI : apparentWindAngle * 180 / Math.PI;
     let awd = cog + awa;
     return { aws: aws, awa: awa, awd: awd };
 }

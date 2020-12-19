@@ -4,12 +4,14 @@ This simulation visualizes wind sheer and how it influences apparent wind at var
 
 ![simulator](simulator-screenshot-1.jpg "sdf")
 
-TODO:
+DONE:
 * improve wind indicator position by using treejs GROUPS to set pivot points at the cone tip
+* allow adjusting wind-sheer to stable or gusty wind-conditions
+TODO:
+* add "info" button and create a windsheer and twist explainer page
+* vizualize sail, and add "angle of attack" 
 * add water spray & boat speed visualization (simple lines or particle engine)
 https://stemkoski.github.io/Three.js/Particle-Engine.html 
-* vizualize sail, and add "angle of attack" 
-* allow adjusting wind-sheer to stable or gusty wind-conditions
 * add WebXR (VR) capability -- update threejs for that
 
 
