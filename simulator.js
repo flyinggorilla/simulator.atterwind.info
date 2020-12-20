@@ -15,7 +15,7 @@ let container, stats;
 let camera, controls, cameraTarget, scene, renderer;
 let water, sun, mesh;
 
-let boat, mast, sailtop, sailfoot;
+let boat, mast, sailtop, sailfoot, mainsheet;
 
 let windfield = [];
 
@@ -289,13 +289,13 @@ function init() {
 
     THREE.DefaultLoadingManager.onStart = function (url, itemsLoaded, itemsTotal) {
 
-        console.log('Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
+        //console.log('Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
 
     };
 
     THREE.DefaultLoadingManager.onLoad = function () {
 
-        console.log('Loading Complete!');
+        //console.log('Loading Complete!');
         loadingComplete = true;
         document.getElementById("loading").style.display = "none";
 
@@ -304,13 +304,13 @@ function init() {
 
     THREE.DefaultLoadingManager.onProgress = function (url, itemsLoaded, itemsTotal) {
 
-        console.log('Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
+        //console.log('Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
 
     };
 
     THREE.DefaultLoadingManager.onError = function (url) {
 
-        console.log('There was an error loading ' + url);
+        //console.log('There was an error loading ' + url);
 
     };
 
@@ -336,12 +336,15 @@ function init() {
 
         }
 
-        boat = new THREE.Mesh(geometry, meshMaterial);
+        boat = new THREE.Group();
+        
+        let boatMesh = new THREE.Mesh(geometry, meshMaterial);
 
-        boat.position.set(0, 0.5, 0);
-        boat.rotation.set(- Math.PI / 2, 0, 0);
         boat.scale.copy(BOATSCALE);
         //mesh.scale.set(0.0001, 0.0001, 0.0001);
+        boatMesh.position.set(50, -1000, 0); // fore, port, up .... in mm
+        boat.rotation.set(- Math.PI / 2, 0, 0);
+        boat.position.set(0, 0.5, 0);
 
         if (showDetails) {
             const axes = new THREE.AxesHelper();
@@ -355,6 +358,7 @@ function init() {
         boat.castShadow = true;
         boat.receiveShadow = true;
 
+        boat.add(boatMesh);
         scene.add(boat);
 
         // mast height 9050mm
@@ -371,7 +375,7 @@ function init() {
             mast = new THREE.Mesh(geometry, meshMaterial);
 
             //mast.position.set(-1100, 35, +9270);
-            mast.position.set(-600, 35, +9330);
+            mast.position.set(-600, 35, +9370); // fore, port, up ... [mm]
             mast.rotation.set(- Math.PI / 2, 0, - 2 * Math.PI / 360 * 4);
 
             mast.castShadow = true;
@@ -385,10 +389,18 @@ function init() {
                 mast.add(axes);
             }
 
-            rigSail(mast);
+            let tackVector = rigSail(mast);
 
             boat.add(mast);
 
+            const mainSheetMaterial = new THREE.LineBasicMaterial( { color: 0x8f0f0f } );
+            const points = [];
+            points.push( new THREE.Vector3(0, 0, 0) );
+            points.push( new THREE.Vector3( -2450, 30, 290 ) );
+        
+            mainSheetGeometry = new THREE.Geometry().setFromPoints( points );
+            mainSheet = new THREE.Line( mainSheetGeometry, mainSheetMaterial );
+            boat.add(mainSheet);
         });
 
 
@@ -418,19 +430,22 @@ const sailHeight = 9040; // mm
 const sailLevelHeight = 100; // mm
 const sailVerticesPerLevel = Math.floor(1000/sailLevelHeight);
 const sailLevels = Math.ceil(sailHeight / sailLevelHeight);
-let sailgeometry;
+const sailTackHeight = 900;
+let sail, sailGeometry;
+let mainSheet, mainSheetGeometry;
+let travellerVector = new THREE.Vector3();
 
 function rigSail(mast) {
-    const tackheight = 900;
-    const tackMastDistance = 2000;
-    const decksweeper = 800;
-    const topMastDistance = 400;
+    const tackMastDistance = 2125;
+    const decksweeper = 900;
+    const topMastDistance = 400; // mm
+    const leechCurvature = 200; //mm
 
     let luffAxis = new THREE.Vector3(0, 0, 1);
    
 
-    let sail = new THREE.Group();
-    sailgeometry = new THREE.Geometry();
+    sail = new THREE.Group();
+    sailGeometry = new THREE.Geometry();
 
 
     for (let level = 0; level <= sailLevels; level++) {
@@ -443,30 +458,27 @@ function rigSail(mast) {
         // function defining lech sailshape
         let sailWidth;
         let clipOffWidth;
-        if (height <= tackheight) {
+        if (height <= sailTackHeight) {
             sailWidth = tackMastDistance;
-            clipOffWidth = decksweeper + (tackMastDistance - decksweeper) * height / tackheight;
+            clipOffWidth = decksweeper + (tackMastDistance - decksweeper) * height / sailTackHeight;
             //override
         } else {
-            sailWidth = tackMastDistance - (tackMastDistance - topMastDistance) * (height - tackheight) / (sailHeight - tackheight);
-            sailWidth+= Math.sin((height - tackheight) / (sailHeight - tackheight) * Math.PI) * 300;
+            sailWidth = tackMastDistance - (tackMastDistance - topMastDistance) * (height - sailTackHeight) / (sailHeight - sailTackHeight);
+            sailWidth+= Math.sin((height - sailTackHeight) / (sailHeight - sailTackHeight) * Math.PI) * leechCurvature;
             clipOffWidth = sailWidth;
         }
-
-        //console.log("height: " + height + " width: " + width);
 
         // add horizontal vertices 
         let lastrot, lastvector;
         for (let v = 0; v < sailVerticesPerLevel; v++) {
-            //let distance = sailWidth / (sailVerticesPerLevel - 1) * v;
             let segwidth = sailWidth / (sailVerticesPerLevel - 1);
-            if (segwidth * v > clipOffWidth + 0.1) {
-                if (segwidth * v - clipOffWidth < segwidth - 0.1) {
-                    segwidth = segwidth * v - clipOffWidth;
-                 } else {
+            let clipAway = segwidth * v - clipOffWidth
+            if (clipAway > 0.1) {
+                if (clipAway > segwidth) {
                     segwidth = 0;
+                 } else {
+                    segwidth = segwidth - clipAway;
                 }
-                console.log("segwidth: " + segwidth)
             } 
 
             let vector, rot;
@@ -476,12 +488,11 @@ function rigSail(mast) {
             } else {
                 rot = lastrot - Math.PI / 24;
                 vector = new THREE.Vector3(0, segwidth, 0);
-                //vector.applyAxisAngle(luffAxis, rot);
                 vector.add(lastvector);
             }
             lastvector = vector;
             lastrot = rot;
-            sailgeometry.vertices.push(vector); 
+            sailGeometry.vertices.push(vector); 
     
         }
 
@@ -504,33 +515,28 @@ function rigSail(mast) {
                 f1.color = new THREE.Color(0.8, 0.2, 0.2);
                 f2.color = new THREE.Color(0.8, 0.2, 0.2);
             }
-            sailgeometry.faces.push(f1, f2);
+            sailGeometry.faces.push(f1, f2);
 
         }
     }
-    sailgeometry.computeFaceNormals();
-    sailgeometry.computeVertexNormals();
+    sailGeometry.computeFaceNormals();
+    sailGeometry.computeVertexNormals();
 
     // Fiberfoam MAST: The section is tapered from approx 160×60 mm in the bottom to 130×45 mm in the top. The mast base shape is identical to the common 145×60 mm section for the ease of interchanging parts.
     sailParams.mastArea = (160 * sailHeight - 30 * sailHeight / 2) / 1000000; // m2
     // this models mast has 140mm and is not tapered
     sailParams.mastArea = (140 * sailHeight) / 1000000; // m2
-    sailParams.sailArea = calcGeometryArea(sailgeometry) / 1000000; // m2
+    sailParams.sailArea = calcGeometryArea(sailGeometry) / 1000000; // m2
 
     //let sailmaterial = new THREE.MeshStandardMaterial({ vertexColors: THREE.FaceColors, color: 0xFFE0E0, opacity: 0.7, transparent: true, side: THREE.DoubleSide });
     let sailmaterial = new THREE.MeshBasicMaterial({ vertexColors: THREE.FaceColors, side: THREE.DoubleSide, opacity: 0.7, transparent: true });
-    let sailmesh = new THREE.Mesh(sailgeometry, sailmaterial);
+    let sailmesh = new THREE.Mesh(sailGeometry, sailmaterial);
     sail.rotation.set(Math.PI / 2, 0, Math.PI / 2);
     sail.position.set(-130, 9040, 0)
     sail.add(sailmesh);
     mast.add(sail);
 
-
-    //windGroup.rotateOnAxis();
-    //windcone.position.set(0, 10, 0)
-    //windcone.rotation.set(Math.PI / 2, 0, Math.PI / 2);
-  
-  
+ 
 }
 
 function calcGeometryArea(geometry) {
@@ -620,7 +626,7 @@ function grad2rad(grad) {
     return grad*Math.PI/180;
 }
 
-let lastWindSpeed, lastBoatSpeed, lastBoatHeading, lastHellman, lastMastrotation = 0;
+let lastWindSpeed, lastBoatSpeed, lastBoatHeading, lastHellman, lastMainSheetLength, lastMastrotation = 0;
 let flatSailgeometry = null;
 function render() {
 
@@ -631,17 +637,21 @@ function render() {
     //camera.position.x = Math.cos(timer) * 3;
     //camera.position.z = Math.sin(timer) * 3;
 
+    
     if (loadingComplete && boat) {
         //boat.position.y = Math.sin( time ) * 20 + 5;
         boat.rotation.x = - Math.PI / 2 + Math.sin(time) * 0.01;
         boat.rotation.y = Math.cos(time) * 0.034;
         boat.rotation.z = Math.cos(time) * 0.01 - Math.sin(time) * 0.02 - grad2rad(boatParams.heading);
 
+        let mainSheetLength = recalcMainSheet();  
+
+
         //mast.rotation.y = boatParams.mastrotation * Math.PI / 180.0;
         //if (boatParams.mastrotation != lastMastrotation) {
         if ((windParams.speed != lastWindSpeed) || (windParams.hellman != lastHellman) ||
               (boatParams.heading != lastBoatHeading) || (boatParams.speed != lastBoatSpeed) ||
-             (boatParams.speed != lastBoatSpeed)) {
+             (boatParams.speed != lastBoatSpeed) || lastMainSheetLength != mainSheetLength) {
 
             
             if (boatParams.speed >= 13) {
@@ -649,12 +659,12 @@ function render() {
                 boat.position.y = 0.6; // foiling height
             } else {
                 //boat.position.set(0, 0.15, 0); // non-foiling
-                boat.position.y = 0.15; // foiling height ******************* CHANGE TO  .y
+                boat.position.y = 0.08; // foiling height ******************* CHANGE TO  .y
             }
-            let mastFootOverWaterHeight = boat.position.y + 0.2;
+            let mastFootOverWaterHeight = (boat.position.y + 0.2)*1000;
     
             if (!flatSailgeometry) {
-                flatSailgeometry = sailgeometry.clone();
+                flatSailgeometry = sailGeometry.clone();
             }
         
             //#####################################################################
@@ -712,11 +722,12 @@ function render() {
                     segment.subVectors(flatSailgeometry.vertices[i], flatSailgeometry.vertices[i-1]);
                     segment.applyAxisAngle(luffAxis, rot);
                     lastrot = rot;
-                    sailgeometry.vertices[i].addVectors(sailgeometry.vertices[i-1], segment);
+                    sailGeometry.vertices[i].addVectors(sailGeometry.vertices[i-1], segment);
                 }
             } 
-            sailgeometry.verticesNeedUpdate = true; 
+            sailGeometry.verticesNeedUpdate = true; 
             mast.rotateY(grad2rad(boatParams.mastrotation - lastMastrotation));
+
 
             //mast.updateMatrix();
             recalcWindField(windParams.speed, windParams.hellman);
@@ -727,6 +738,8 @@ function render() {
                                 "<br>Apparent wind speed: " + Math.round(aw.aws) + "kts" + 
                                 "<br>Apparent wind angle: " + Math.round(Math.abs(aw.awa)) + "°" + 
                                 "<br>Sail area: " + (sailParams.mastArea + sailParams.sailArea).toFixed(2) + "m² (mast: " + sailParams.mastArea.toFixed(2) + "m², sail: " + sailParams.sailArea.toFixed(2) + "m²)" + //&sup2;
+                                "<br>Mast foot over water: " + (mastFootOverWaterHeight/1000).toFixed(1) + "m" + 
+                                "<br>Mainsheet give: " + Math.round(mainSheetLength/10 - 83) + "cm" + 
                                 "<br>lastrot: " + rad2grad(deltarot) +
                                 "<br>deltarot: " + rad2grad(deltarot);
 
@@ -735,7 +748,7 @@ function render() {
             lastBoatSpeed = boatParams.speed;
             lastHellman = windParams.hellman;
             lastWindSpeed = windParams.speed;
-
+            lastMainSheetLength = mainSheetLength;
 
         } 
 
@@ -753,6 +766,17 @@ function render() {
     renderer.render(scene, camera);
 
 }
+
+// returns mainsheet length in mm
+function recalcMainSheet() {
+    mainSheetGeometry.verticesNeedUpdate = true;
+    let sailTackVerticeIndex = Math.ceil(sailTackHeight / sailLevelHeight + 1 ) * sailVerticesPerLevel - 1;
+    let tackWorldVector = sail.localToWorld(sailGeometry.vertices[sailTackVerticeIndex].clone());
+    let tackVector = mainSheet.worldToLocal(tackWorldVector);
+    mainSheetGeometry.vertices[0].copy(tackVector);
+    return mainSheetGeometry.vertices[1].distanceTo(tackVector);  
+}
+
 
 
 function calcMastRotation(apparentWind) {
