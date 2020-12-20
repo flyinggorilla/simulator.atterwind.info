@@ -27,7 +27,8 @@ const boatParams = {
     mastrotation: 0.0,
     heading: 0.0,
     speed: 5.0,
-    testcheckbox: false //############# TEST
+    testcheckbox: false, //############# TEST
+    vmg: 0.0
 }
 
 const windParams = {
@@ -374,8 +375,7 @@ function init() {
 
             mast = new THREE.Mesh(geometry, meshMaterial);
 
-            //mast.position.set(-1100, 35, +9270);
-            mast.position.set(-600, 35, +9370); // fore, port, up ... [mm]
+            mast.position.set(-600, 35, +9380); // fore, port, up ... [mm]
             mast.rotation.set(- Math.PI / 2, 0, - 2 * Math.PI / 360 * 4);
 
             mast.castShadow = true;
@@ -694,6 +694,7 @@ function render() {
             } else {
                 angleOfAttack = 0;
             }
+            deltarot /= 1.8;
 
 
 
@@ -705,11 +706,16 @@ function render() {
         
             // adjust sailshape
             let luffAxis = new THREE.Vector3(0, 0, 1);
+            let power = 0.0;
             for (let level = 0; level <= sailLevels; level++) {
                 let overWaterHeight = level * sailLevelHeight + mastFootOverWaterHeight;
                 let tws = windSheer(windParams.speed, overWaterHeight / 1000.0, windParams.hellman);
-                let awa = apparentWind(boatParams.speed, boatParams.heading, tws, 0).awa;
+                let aw = apparentWind(boatParams.speed, boatParams.heading, tws, 0);
+                let awa = aw.awa;
                 let baserot = grad2rad(awa) + angleOfAttack;
+                if (aw.awa > 25) {
+                    power += aw.aws; // sum up all wind speeds
+                }
                 //if (Math.abs(baserot) > Math.PI/2) {
                 //    baserot = Math.PI/2 * Math.sign(baserot);
                 //}
@@ -725,6 +731,7 @@ function render() {
                     sailGeometry.vertices[i].addVectors(sailGeometry.vertices[i-1], segment);
                 }
             } 
+            power /= sailLevels;
             sailGeometry.verticesNeedUpdate = true; 
             mast.rotateY(grad2rad(boatParams.mastrotation - lastMastrotation));
 
@@ -733,6 +740,8 @@ function render() {
             recalcWindField(windParams.speed, windParams.hellman);
             recalcApparentWindField(windParams.speed, boatParams.speed, boatParams.heading, windParams.hellman);
 
+            boatParams.vmg = Math.abs(boatParams.speed * Math.cos(grad2rad(boatParams.heading)));
+
             dataDiv.innerHTML = "Mast rotation: " + Math.round(mr.mastRotation) + 
                                 "° <br> Mast angle of attack: " + Math.round(mr.mastAngleOfAttack) + "°" + 
                                 "<br>Apparent wind speed: " + Math.round(aw.aws) + "kts" + 
@@ -740,8 +749,10 @@ function render() {
                                 "<br>Sail area: " + (sailParams.mastArea + sailParams.sailArea).toFixed(2) + "m² (mast: " + sailParams.mastArea.toFixed(2) + "m², sail: " + sailParams.sailArea.toFixed(2) + "m²)" + //&sup2;
                                 "<br>Mast foot over water: " + (mastFootOverWaterHeight/1000).toFixed(1) + "m" + 
                                 "<br>Mainsheet give: " + Math.round(mainSheetLength/10 - 83) + "cm" + 
-                                "<br>lastrot: " + rad2grad(deltarot) +
-                                "<br>deltarot: " + rad2grad(deltarot);
+                                "<br>VMG: " + boatParams.vmg.toFixed(1) + "kts" +
+                                "<br>Apparent wind power: " + power.toFixed(1) + "kts average over sail" +
+                                "<br>lastrot: " + rad2grad(deltarot).toFixed(1) +
+                                "<br>deltarot: " + rad2grad(deltarot).toFixed(1);
 
             lastMastrotation = boatParams.mastrotation;
             lastBoatHeading = boatParams.heading;
