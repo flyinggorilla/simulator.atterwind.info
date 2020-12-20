@@ -35,6 +35,11 @@ const windParams = {
     hellman: 0.27
 }
 
+const sailParams = {
+    mastArea: 0,
+    sailArea: 0
+}
+
 let dataDiv;
 
 
@@ -365,7 +370,8 @@ function init() {
 
             mast = new THREE.Mesh(geometry, meshMaterial);
 
-            mast.position.set(-1100, 35, +9270);
+            //mast.position.set(-1100, 35, +9270);
+            mast.position.set(-600, 35, +9330);
             mast.rotation.set(- Math.PI / 2, 0, - 2 * Math.PI / 360 * 4);
 
             mast.castShadow = true;
@@ -409,16 +415,16 @@ function init() {
 }
 
 const sailHeight = 9040; // mm
-const sailLevelHeight = 200; // mm
+const sailLevelHeight = 100; // mm
 const sailVerticesPerLevel = Math.floor(1000/sailLevelHeight);
 const sailLevels = Math.ceil(sailHeight / sailLevelHeight);
 let sailgeometry;
 
 function rigSail(mast) {
-    const tackheight = 600;
-    const tackMastDistance = 1600;
-    const decksweeper = 700;
-    const topMastDistance = 300;
+    const tackheight = 900;
+    const tackMastDistance = 2000;
+    const decksweeper = 800;
+    const topMastDistance = 400;
 
     let luffAxis = new THREE.Vector3(0, 0, 1);
    
@@ -443,6 +449,7 @@ function rigSail(mast) {
             //override
         } else {
             sailWidth = tackMastDistance - (tackMastDistance - topMastDistance) * (height - tackheight) / (sailHeight - tackheight);
+            sailWidth+= Math.sin((height - tackheight) / (sailHeight - tackheight) * Math.PI) * 300;
             clipOffWidth = sailWidth;
         }
 
@@ -505,12 +512,10 @@ function rigSail(mast) {
     sailgeometry.computeVertexNormals();
 
     // Fiberfoam MAST: The section is tapered from approx 160×60 mm in the bottom to 130×45 mm in the top. The mast base shape is identical to the common 145×60 mm section for the ease of interchanging parts.
-    let mastArea = (160 * sailHeight - 30 * sailHeight / 2) / 1000000; // m2
+    sailParams.mastArea = (160 * sailHeight - 30 * sailHeight / 2) / 1000000; // m2
     // this models mast has 140mm and is not tapered
-    mastArea = (140 * sailHeight) / 1000000; // m2
-    let sailArea = calcGeometryArea(sailgeometry) / 1000000; // m2
-
-    console.log("Sail+mast area: " +  (sailArea + mastArea) + "(" + sailArea + ", " + mastArea + ")"); // note, mast has about 1.8m2
+    sailParams.mastArea = (140 * sailHeight) / 1000000; // m2
+    sailParams.sailArea = calcGeometryArea(sailgeometry) / 1000000; // m2
 
     //let sailmaterial = new THREE.MeshStandardMaterial({ vertexColors: THREE.FaceColors, color: 0xFFE0E0, opacity: 0.7, transparent: true, side: THREE.DoubleSide });
     let sailmaterial = new THREE.MeshBasicMaterial({ vertexColors: THREE.FaceColors, side: THREE.DoubleSide, opacity: 0.7, transparent: true });
@@ -607,7 +612,13 @@ function recalc() {
     //console.log("recalc");
 }
 
+function rad2grad(rad) {
+    return rad*180/Math.PI;
+}
 
+function grad2rad(grad) {
+    return grad*Math.PI/180;
+}
 
 let lastWindSpeed, lastBoatSpeed, lastBoatHeading, lastHellman, lastMastrotation = 0;
 let flatSailgeometry = null;
@@ -624,7 +635,7 @@ function render() {
         //boat.position.y = Math.sin( time ) * 20 + 5;
         boat.rotation.x = - Math.PI / 2 + Math.sin(time) * 0.01;
         boat.rotation.y = Math.cos(time) * 0.034;
-        boat.rotation.z = Math.cos(time) * 0.01 - Math.sin(time) * 0.02 - boatParams.heading * Math.PI / 180;
+        boat.rotation.z = Math.cos(time) * 0.01 - Math.sin(time) * 0.02 - grad2rad(boatParams.heading);
 
         //mast.rotation.y = boatParams.mastrotation * Math.PI / 180.0;
         //if (boatParams.mastrotation != lastMastrotation) {
@@ -651,52 +662,48 @@ function render() {
             // TODO: create functions for mast-rotation in dependence on heading and (wind)speed
             // TODO: create line for mainsheet and display length of it --- implies traveller!!!!
             // mast and luff rotation
-            let baserot = 0;
             let deltarot = 0;
             let angleOfAttack = 0;
             let dirfact = boatParams.heading < 0 ? 1.0 : -1.0; // direction factor 
             boatParams.mastrotation = 0;
             if (Math.abs(boatParams.heading) > 155) {
-                baserot = Math.PI / 32 * dirfact;
                 deltarot = Math.PI / 18 * dirfact;
-                boatParams.mastrotation =  90 * dirfact;
                 angleOfAttack = 25 / 180 * Math.PI * dirfact; 
             } else if (Math.abs(boatParams.heading) > 120) {
-                baserot = Math.PI / 8 * dirfact;
                 deltarot = Math.PI / 12 * dirfact;
-                boatParams.mastrotation =  90 * dirfact;
                 angleOfAttack = 25 / 180 * Math.PI * dirfact;
             } else if (Math.abs(boatParams.heading) > 90) {
-                baserot = Math.PI / 8 * dirfact;
                 deltarot = Math.PI / 18 * dirfact;
-                boatParams.mastrotation =  75 * dirfact;
                 angleOfAttack = 25 / 180 * Math.PI * dirfact;
             } else if (Math.abs(boatParams.heading) > 40) {
-                baserot = Math.PI / 8 * dirfact;
-                deltarot = Math.PI / 24 * dirfact;
-                boatParams.mastrotation =  35 * dirfact;
+               deltarot = Math.PI / 24 * dirfact;
                 angleOfAttack = 25 / 180 * Math.PI * dirfact;
             } else if (Math.abs(boatParams.heading) > 20) {
-                baserot = Math.PI / 8 * dirfact;
                 deltarot = Math.PI / 32 * dirfact;
-                boatParams.mastrotation =  10 * dirfact;
                 angleOfAttack = 25 / 180 * Math.PI * dirfact;
             } else {
                 angleOfAttack = 0;
             }
 
-            let aw = apparentWind(boatParams.speed, boatParams.heading, windParams.speed, 0);
-            boatParams.mastrotation = calcMastRotation(aw) * dirfact;
 
+
+            let aw = apparentWind(boatParams.speed, boatParams.heading, windParams.speed, 0);
+            let mr = calcMastRotation(aw)
+            boatParams.mastrotation = mr.mastRotation * dirfact;
+
+            //deltarot = (Math.PI / 12 +  Math.PI / 12 * Math.max(50-aw.aws, 0)/50) * angleOfAttack / grad2rad(25);
+        
             // adjust sailshape
             let luffAxis = new THREE.Vector3(0, 0, 1);
             for (let level = 0; level <= sailLevels; level++) {
-                let lastrot = baserot;
-
                 let overWaterHeight = level * sailLevelHeight + mastFootOverWaterHeight;
                 let tws = windSheer(windParams.speed, overWaterHeight / 1000.0, windParams.hellman);
                 let awa = apparentWind(boatParams.speed, boatParams.heading, tws, 0).awa;
-                lastrot = - awa / 180 * Math.PI - angleOfAttack + boatParams.mastrotation / 180 * Math.PI;   
+                let baserot = grad2rad(awa) + angleOfAttack;
+                //if (Math.abs(baserot) > Math.PI/2) {
+                //    baserot = Math.PI/2 * Math.sign(baserot);
+                //}
+                let lastrot = grad2rad(boatParams.mastrotation) - baserot;   
 
                 for (let v = 1; v < sailVerticesPerLevel; v++) {
                     let i = level*sailVerticesPerLevel + v;
@@ -709,11 +716,19 @@ function render() {
                 }
             } 
             sailgeometry.verticesNeedUpdate = true; 
-            mast.rotateY((boatParams.mastrotation - lastMastrotation) * Math.PI / 180.0);
+            mast.rotateY(grad2rad(boatParams.mastrotation - lastMastrotation));
 
             //mast.updateMatrix();
             recalcWindField(windParams.speed, windParams.hellman);
             recalcApparentWindField(windParams.speed, boatParams.speed, boatParams.heading, windParams.hellman);
+
+            dataDiv.innerHTML = "Mast rotation: " + Math.round(mr.mastRotation) + 
+                                "° <br> Mast angle of attack: " + Math.round(mr.mastAngleOfAttack) + "°" + 
+                                "<br>Apparent wind speed: " + Math.round(aw.aws) + "kts" + 
+                                "<br>Apparent wind angle: " + Math.round(Math.abs(aw.awa)) + "°" + 
+                                "<br>Sail area: " + (sailParams.mastArea + sailParams.sailArea).toFixed(2) + "m² (mast: " + sailParams.mastArea.toFixed(2) + "m², sail: " + sailParams.sailArea.toFixed(2) + "m²)" + //&sup2;
+                                "<br>lastrot: " + rad2grad(deltarot) +
+                                "<br>deltarot: " + rad2grad(deltarot);
 
             lastMastrotation = boatParams.mastrotation;
             lastBoatHeading = boatParams.heading;
@@ -745,10 +760,9 @@ function calcMastRotation(apparentWind) {
     if (Math.abs(apparentWind.awa) < 10) {
         mastAngleOfAttack = 0;
     }
-    let mastRotation = Math.min(Math.abs(apparentWind.awa) + mastAngleOfAttack, 90.0); // add 10 degrees angle of attack to aparrent wind // TODO depends on wind-speed????
+    let mastRotation = Math.min(Math.abs(apparentWind.awa) + mastAngleOfAttack, 75.0); // add 10 degrees angle of attack to aparrent wind // TODO depends on wind-speed????
     let actualMastAngleOfAttack = mastRotation - Math.abs(apparentWind.awa);
-    dataDiv.innerHTML = "Mast rotation: " + Math.round(mastRotation) + "° <br> Mast angle of attack: " + Math.round(actualMastAngleOfAttack) + "°" + "<br>Apparent wind speed: " + Math.round(apparentWind.aws) + "kts" + "<br>Apparent wind angle: " + Math.round(Math.abs(apparentWind.awa)) + "°";
-    return mastRotation;
+    return { mastRotation: mastRotation, mastAngleOfAttack: actualMastAngleOfAttack };
 }
 
 function recalcSailShape(windspeed, sog, cog) {
