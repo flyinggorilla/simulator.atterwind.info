@@ -1,3 +1,5 @@
+"use strict";
+
 import * as THREE from './three.module.js';
 import Stats from './stats.module.js';
 import { STLLoader } from './STLLoader.js';
@@ -40,6 +42,171 @@ const sailParams = {
     mastArea: 0,
     sailArea: 0
 }
+
+// Sail shape based on parabolic curve
+// http://www.onemetre.net/design/Parab/Parab.htm
+class SailShape {
+    tStart = 0.001;
+    tEnd   = 1.001; //increase this value to move draft/camber forward
+    tInc   = (this.tEnd-this.tStart)/1000; // increment
+
+    shapeRotated = []; // array of rotated sail shape points
+    phi; // calculated angle to rotate parabola "flat"
+    cosPhi; // precalc rotation factors
+    sinPhi; // precalc rotation factors
+
+    shapeScaled = [];
+
+    draftDepth;
+    draftPosition;
+    girth;
+
+    // private: 
+    // parabolic function fx(t): x=at^2, fy(t): y=2at
+    parabola(t, a = 1){
+        return new THREE.Vector2(a * t**2, 2*a*t);
+    } 
+    
+    constructor() {
+        let p1 = this.parabola(this.tStart);
+        let p2 = this.parabola(this.tEnd);
+        this.phi = p2.sub(p1).angle(); //phi = math.atan((y2-y1)/(x2-x1))
+        //this.cosPhi = Math.cos(phi)
+        //this.sinPhi = Math.sin(phi)
+        console.log("phi: " + (this.phi*180/Math.PI).toFixed(2));
+
+        let p0 = new THREE.Vector2(0, 0);
+        for (let t = this.tStart; t <= this.tEnd; t += this.tInc) {
+            let p = this.parabola(t);
+            // move to 0
+            p.sub(p1);
+
+            // rotate around phi # https://en.wikipedia.org/wiki/Rotation_(mathematics)  # switch +/- for rotating clockwise
+            //xrot =  x * cosPhi + y * sinPhi
+            //yrot =  y * cosPhi - x * sinPhi
+            p.rotateAround(p0, -this.phi); // rotate clockwise
+            this.shapeRotated.push(p);
+        }
+    }
+
+
+    // public:
+    // calculate the shape for this chord length in [mm]
+    // chord length = boom length - outhaul (straight leech to luff distance)
+    // fullness: simple depth scaling factor to flatten the sail without recalculating the parabola
+    calcShape(chord, fullness = 1) {
+        this.shapeScaled = [];
+        let scale = chord / (this.shapeRotated[this.shapeRotated.length-1].x - this.shapeRotated[0].x);
+        console.log("scale: " + scale.toFixed(2));
+
+        // clone and scale 
+        for (let p in this.shapeRotated) {
+            this.shapeScaled.push(this.shapeRotated[p].clone().multiplyScalar(scale));
+        }
+
+        // flatten the sail if needed (without changing the parabolic shape)
+        if (fullness != 1) {
+            for (let p of this.shapeScaled) {
+                p.y *= fullness;
+            }
+        }
+
+        // find max position
+        let pmax = new THREE.Vector2(0, 0);
+        for (const p of this.shapeScaled) {
+            if (p.y > pmax.y) {
+                pmax = p;
+            }
+        }
+
+        this.draftDepth = pmax.y;
+        this.draftPosition = pmax.x;
+
+        console.log("draftDepth: " + this.draftDepth.toFixed(2));
+
+        // calculate girth (flat sail length)
+        this.girth = 0.0;
+        let p1 = null;
+
+        for (const p2 of this.shapeScaled) {
+            if (p1) {
+                this.girth += p2.distanceTo(p1); //girth += math.sqrt((x2-x1)**2 + (y2-y1)**2)
+            }
+            p1 = p2;
+        }
+
+        console.log("girth: " + this.girth.toFixed(2));
+
+        // sag (estimated outhaul movement)
+        this.sag = chord - this.girth;
+        
+        // entry & exit angle
+        this.entryAngle = this.shapeScaled[1].clone().sub(this.shapeScaled[0]).angle() * 180 / Math.PI; //entryAngle = 180*math.atan((y2-y1)/(x2-x1))/math.pi
+        this.exitAngle = this.shapeScaled[this.shapeScaled.length-1].clone().sub(this.shapeScaled[this.shapeScaled.length-2]).angle() * 180 / Math.PI - 360;
+        console.log("entry: " + this.entryAngle.toFixed(2) + " exit: " + this.exitAngle.toFixed(2));
+
+        
+        // force angle Forward inclination of sail lift force
+        this.forceAngle = (this.entryAngle + this.exitAngle)/2;
+        console.log("forceangle: " + this.forceAngle.toFixed(2));
+        
+                
+        
+    }
+
+    // calculated length of flattened sail-shape
+    get girth() {
+        return this.girth;
+    }
+
+    // entry angle of sail shape
+    get entryAngle() {
+        return this.entryAngle;
+    }
+    
+    // exit angle of sail shape
+    get exitAngle() {
+        return this.exitAngle;
+    }
+
+    // depth as draft vs. chord %
+    get draftRatio() {
+        return this.draftDepth / chord; // depth as draft vs. chord %;
+    }
+
+    // calculate angle of sail at position of masttrack which is actuall luff of sail
+    get mastTrackAngle(mastwidth) {
+
+    }
+
+    // get point at girth distance
+    // returns a 2D Vector with coordinates
+    // TODO PERFORMANCE OPTIMIZATION BY NOT ITERATING EVERY TIME OVER POINTS!!!
+    get pointAtGirthDistance(distance) {
+        let girth = 0.0;
+        let p1 = null;
+        for (const p2 of this.shapeScaled) {
+            if (p1) {
+                girth += p2.distanceTo(p1);
+            }
+            p1 = p2;
+            if (girth >= distance) {
+                return p1.clone();
+            }
+        }
+
+    }
+
+}
+
+
+
+
+
+
+let sailShape = new SailShape();
+sailShape.calcShape(345);
+
 
 let dataDiv;
 
@@ -468,6 +635,8 @@ function rigSail(mast) {
             clipOffWidth = sailWidth;
         }
 
+        sailShape.calcShape(tackMastDistance);
+
         // add horizontal vertices 
         let lastrot, lastvector;
         for (let v = 0; v < sailVerticesPerLevel; v++) {
@@ -625,6 +794,7 @@ function rad2grad(rad) {
 function grad2rad(grad) {
     return grad*Math.PI/180;
 }
+
 
 let lastWindSpeed, lastBoatSpeed, lastBoatHeading, lastHellman, lastMainSheetLength, lastMastrotation = 0;
 let flatSailgeometry = null;
@@ -896,3 +1066,6 @@ function apparentWind(sog, cog, tws, twd) {
     let awd = cog + awa;
     return { aws: aws, awa: awa, awd: awd };
 }
+
+
+
