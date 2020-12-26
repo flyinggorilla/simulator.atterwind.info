@@ -73,7 +73,7 @@ class SailShape {
         this.phi = p2.sub(p1).angle(); //phi = math.atan((y2-y1)/(x2-x1))
         //this.cosPhi = Math.cos(phi)
         //this.sinPhi = Math.sin(phi)
-        console.log("phi: " + (this.phi*180/Math.PI).toFixed(2));
+        //console.log("phi: " + (this.phi*180/Math.PI).toFixed(2));
 
         let p0 = new THREE.Vector2(0, 0);
         for (let t = this.tStart; t <= this.tEnd; t += this.tInc) {
@@ -97,7 +97,7 @@ class SailShape {
     calcShape(chord, fullness = 1) {
         this.shapeScaled = [];
         let scale = chord / (this.shapeRotated[this.shapeRotated.length-1].x - this.shapeRotated[0].x);
-        console.log("scale: " + scale.toFixed(2));
+        //console.log("scale: " + scale.toFixed(2));
 
         // clone and scale 
         for (let p in this.shapeRotated) {
@@ -122,7 +122,7 @@ class SailShape {
         this.draftDepth = pmax.y;
         this.draftPosition = pmax.x;
 
-        console.log("draftDepth: " + this.draftDepth.toFixed(2));
+        //console.log("draftDepth: " + this.draftDepth.toFixed(2));
 
         // calculate girth (flat sail length)
         this.girth = 0.0;
@@ -135,26 +135,52 @@ class SailShape {
             p1 = p2;
         }
 
-        console.log("girth: " + this.girth.toFixed(2));
+        //console.log("girth: " + this.girth.toFixed(2));
 
         // sag (estimated outhaul movement)
         this.sag = chord - this.girth;
         
-        // entry & exit angle
-        this.entryAngle = this.shapeScaled[1].clone().sub(this.shapeScaled[0]).angle() * 180 / Math.PI; //entryAngle = 180*math.atan((y2-y1)/(x2-x1))/math.pi
-        this.exitAngle = this.shapeScaled[this.shapeScaled.length-1].clone().sub(this.shapeScaled[this.shapeScaled.length-2]).angle() * 180 / Math.PI - 360;
-        console.log("entry: " + this.entryAngle.toFixed(2) + " exit: " + this.exitAngle.toFixed(2));
+        // entry & exit angle in [rad]
+        this.entryAngle = this.shapeScaled[1].clone().sub(this.shapeScaled[0]).angle(); //entryAngle = 180*math.atan((y2-y1)/(x2-x1))/math.pi
+        this.exitAngle = this.shapeScaled[this.shapeScaled.length-1].clone().sub(this.shapeScaled[this.shapeScaled.length-2]).angle() - Math.PI*2;
+        //console.log("entry: " + this.entryAngle.toFixed(2) + " exit: " + this.exitAngle.toFixed(2));
 
         
         // force angle Forward inclination of sail lift force
         this.forceAngle = (this.entryAngle + this.exitAngle)/2;
-        console.log("forceangle: " + this.forceAngle.toFixed(2));
+        //console.log("forceangle: " + this.forceAngle.toFixed(2));
         
                 
         
     }
 
-    // calculated length of flattened sail-shape
+    // return array of angles in [rad] -- 
+    getVerticesAngles(numberOfPoints) {
+        const segmentLength = this.girth / (numberOfPoints -1);
+        let point = -1;
+        let girth = 0;
+        let angles = [];
+        let p1 = null;
+        for (const p2 of this.shapeScaled) {
+            if (p1) {
+                girth += p2.distanceTo(p1); //girth += math.sqrt((x2-x1)**2 + (y2-y1)**2)
+                let points = Math.floor(girth / segmentLength);
+                if (points > point) {
+                    point = points;
+                    //let angle = p2.clone().sub(p1).angle();
+                    //angles.push(angle < Math.PI ? angle : - Math.PI*2 + angle );
+                    angles.push(p2.angle());
+                }
+            }
+            p1 = p2;
+        }
+        if (numberOfPoints != angles.length) {
+            console.log("Number of points mismatch! Rounding error?? " + numberOfPoints + " actual: " + angles.length);
+        }
+        return angles;
+    }
+
+ /*   // calculated length of flattened sail-shape
     get girth() {
         return this.girth;
     }
@@ -169,20 +195,24 @@ class SailShape {
         return this.exitAngle;
     }
 
+    set entryAngle(a) {
+        this.entryAngle = a;
+    }*/
+
     // depth as draft vs. chord %
     get draftRatio() {
         return this.draftDepth / chord; // depth as draft vs. chord %;
     }
 
     // calculate angle of sail at position of masttrack which is actuall luff of sail
-    get mastTrackAngle(mastwidth) {
+    mastTrackAngle(mastwidth) {
 
     }
 
     // get point at girth distance
     // returns a 2D Vector with coordinates
     // TODO PERFORMANCE OPTIMIZATION BY NOT ITERATING EVERY TIME OVER POINTS!!!
-    get pointAtGirthDistance(distance) {
+    pointAtGirthDistance(distance) {
         let girth = 0.0;
         let p1 = null;
         for (const p2 of this.shapeScaled) {
@@ -635,8 +665,6 @@ function rigSail(mast) {
             clipOffWidth = sailWidth;
         }
 
-        sailShape.calcShape(tackMastDistance);
-
         // add horizontal vertices 
         let lastrot, lastvector;
         for (let v = 0; v < sailVerticesPerLevel; v++) {
@@ -650,17 +678,17 @@ function rigSail(mast) {
                 }
             } 
 
-            let vector, rot;
+            let vector; //, rot;
             if (v == 0) {
                 vector = new THREE.Vector3(0, 0, height);
-                rot = Math.PI / 4;
+                //rot = Math.PI / 4;
             } else {
-                rot = lastrot - Math.PI / 24;
+                //rot = lastrot - Math.PI / 24;
                 vector = new THREE.Vector3(0, segwidth, 0);
                 vector.add(lastvector);
             }
             lastvector = vector;
-            lastrot = rot;
+            //lastrot = rot;
             sailGeometry.vertices.push(vector); 
     
         }
@@ -739,28 +767,6 @@ function addShadowedLight(x, y, z, color, intensity) {
 
 }
 
-// obj - your object (THREE.Object3D or derived)
-// point - the point of rotation (THREE.Vector3)
-// axis - the axis of rotation (normalized THREE.Vector3)
-// theta - radian value of rotation
-// pointIsWorld - boolean indicating the point is in world coordinates (default = false)
-function rotateAboutPoint(obj, point, axis, theta, pointIsWorld) {
-    pointIsWorld = (pointIsWorld === undefined) ? false : pointIsWorld;
-
-    if (pointIsWorld) {
-        obj.parent.localToWorld(obj.position); // compensate for world coordinate
-    }
-
-    obj.position.sub(point); // remove the offset
-    obj.position.applyAxisAngle(axis, theta); // rotate the POSITION
-    obj.position.add(point); // re-add the offset
-
-    if (pointIsWorld) {
-        obj.parent.worldToLocal(obj.position); // undo world coordinates compensation
-    }
-
-    obj.rotateOnAxis(axis, theta); // rotate the OBJECT
-}
 
 function onWindowResize() {
 
@@ -814,16 +820,15 @@ function render() {
         boat.rotation.y = Math.cos(time) * 0.034;
         boat.rotation.z = Math.cos(time) * 0.01 - Math.sin(time) * 0.02 - grad2rad(boatParams.heading);
 
-        let mainSheetLength = recalcMainSheet();  
+        let mainSheetLength = Math.round(recalcMainSheet());  
 
 
         //mast.rotation.y = boatParams.mastrotation * Math.PI / 180.0;
         //if (boatParams.mastrotation != lastMastrotation) {
         if ((windParams.speed != lastWindSpeed) || (windParams.hellman != lastHellman) ||
               (boatParams.heading != lastBoatHeading) || (boatParams.speed != lastBoatSpeed) ||
-             (boatParams.speed != lastBoatSpeed) || lastMainSheetLength != mainSheetLength) {
+             (lastMainSheetLength != mainSheetLength)) {
 
-            
             if (boatParams.speed >= 13) {
                 //boat.position.set(0, 0.6, 0); // foiling height
                 boat.position.y = 0.6; // foiling height
@@ -845,35 +850,23 @@ function render() {
             let deltarot = 0;
             let angleOfAttack = 0;
             let dirfact = boatParams.heading < 0 ? 1.0 : -1.0; // direction factor 
-            boatParams.mastrotation = 0;
-            if (Math.abs(boatParams.heading) > 155) {
-                deltarot = Math.PI / 18 * dirfact;
-                angleOfAttack = 25 / 180 * Math.PI * dirfact; 
-            } else if (Math.abs(boatParams.heading) > 120) {
-                deltarot = Math.PI / 12 * dirfact;
-                angleOfAttack = 25 / 180 * Math.PI * dirfact;
-            } else if (Math.abs(boatParams.heading) > 90) {
-                deltarot = Math.PI / 18 * dirfact;
-                angleOfAttack = 25 / 180 * Math.PI * dirfact;
-            } else if (Math.abs(boatParams.heading) > 40) {
-               deltarot = Math.PI / 24 * dirfact;
-                angleOfAttack = 25 / 180 * Math.PI * dirfact;
-            } else if (Math.abs(boatParams.heading) > 20) {
-                deltarot = Math.PI / 32 * dirfact;
-                angleOfAttack = 25 / 180 * Math.PI * dirfact;
-            } else {
-                angleOfAttack = 0;
-            }
-            deltarot /= 1.8;
-
-
+            sailShape.calcShape(2160);
 
             let aw = apparentWind(boatParams.speed, boatParams.heading, windParams.speed, 0);
             let mr = calcMastRotation(aw)
-            boatParams.mastrotation = mr.mastRotation * dirfact;
+
+            let verticeAngles = sailShape.getVerticesAngles(sailVerticesPerLevel);
+            //console.log("verticeAngles: " + verticeAngles.length);
+            //console.log("dirfact: " + dirfact);
+            //for (let i in verticeAngles) {
+            //    console.log("angle[" + i + "]: " + rad2grad(verticeAngles[i]).toFixed(2) + "°");
+            //}
+
+            boatParams.mastrotation = aw.awa;
+
 
             //deltarot = (Math.PI / 12 +  Math.PI / 12 * Math.max(50-aw.aws, 0)/50) * angleOfAttack / grad2rad(25);
-        
+    
             // adjust sailshape
             let luffAxis = new THREE.Vector3(0, 0, 1);
             let power = 0.0;
@@ -882,15 +875,17 @@ function render() {
                 let tws = windSheer(windParams.speed, overWaterHeight / 1000.0, windParams.hellman);
                 let aw = apparentWind(boatParams.speed, boatParams.heading, tws, 0);
                 let awa = aw.awa;
-                let baserot = grad2rad(awa) + angleOfAttack;
+                let deltarot = grad2rad(boatParams.mastrotation - awa);
+                //deltarot = 0;
                 if (aw.awa > 25) {
                     power += aw.aws; // sum up all wind speeds
                 }
+
+                /*
                 //if (Math.abs(baserot) > Math.PI/2) {
                 //    baserot = Math.PI/2 * Math.sign(baserot);
                 //}
                 let lastrot = grad2rad(boatParams.mastrotation) - baserot;   
-
                 for (let v = 1; v < sailVerticesPerLevel; v++) {
                     let i = level*sailVerticesPerLevel + v;
                     let rot = lastrot + deltarot;
@@ -899,11 +894,26 @@ function render() {
                     segment.applyAxisAngle(luffAxis, rot);
                     lastrot = rot;
                     sailGeometry.vertices[i].addVectors(sailGeometry.vertices[i-1], segment);
-                }
+                } */
+
+                for (let v = 1; v < sailVerticesPerLevel; v++) {
+                    let i = level*sailVerticesPerLevel + v;
+                    //let segment = new THREE.Vector3();
+                    //segment.subVectors(flatSailgeometry.vertices[i], flatSailgeometry.vertices[i-1]);
+                    //segment.applyAxisAngle(luffAxis, deltarot - verticeAngles[v] * dirfact);
+                    //sailGeometry.vertices[i].addVectors(sailGeometry.vertices[i-1], segment);
+
+                    sailGeometry.vertices[i].copy(flatSailgeometry.vertices[i]);
+                    sailGeometry.vertices[i].applyAxisAngle(luffAxis, deltarot-verticeAngles[v]*dirfact);
+                } 
+
+
+
             } 
             power /= sailLevels;
             sailGeometry.verticesNeedUpdate = true; 
             mast.rotateY(grad2rad(boatParams.mastrotation - lastMastrotation));
+            //mast.rotation.y = grad2rad(boatParams.mastrotation);
 
 
             //mast.updateMatrix();

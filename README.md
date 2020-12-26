@@ -9,6 +9,7 @@ DONE:
 * allow adjusting wind-sheer to stable or gusty wind-conditions
 TODO:
 * add "info" button and create a windsheer and twist explainer page
+* quicksettings: "downwind foiling", "downwind light winds", "upwind foiling", "upwind max height", "reaching"
 * vizualize sail, and add "angle of attack" 
 * add water spray & boat speed visualization (simple lines or particle engine)
 https://stemkoski.github.io/Three.js/Particle-Engine.html 
