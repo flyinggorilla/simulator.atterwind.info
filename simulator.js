@@ -72,10 +72,16 @@ const sailParams = {
     sailArea: 0
 }
 
-const cameraParams = {
+const cameraDefaults = {
     height: 10, // [m]
     aside: 8, // [m]
     along: 8 // [m]
+}
+
+const cameraParams = {
+    height: cameraDefaults.height, // [m]
+    aside: cameraDefaults.aside, // [m]
+    along: cameraDefaults.along // [m]
 }
 
 const cameraLimits = {
@@ -159,7 +165,6 @@ function init() {
     camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 20000);
     camera.position.set(cameraParams.along, cameraParams.height, cameraParams.aside);
     const cameraHelper = new THREE.CameraHelper(camera);
-
 
     scene = new THREE.Scene();
     //scene.fog = new THREE.Fog(0x72645b, 5, 1000);
@@ -307,6 +312,13 @@ function init() {
     folderPresets.add(fActionDownwindLight,'downlight').name('downwind light');
     let fActionUpwindLight = { uplight:function(){ boatParams.heading = 48; boatParams.speed = 3; windParams.speed = 5 }};
     folderPresets.add(fActionUpwindLight,'uplight').name('upwind light');
+    let fActionCameraReset = { camera:function(){ 
+        cameraParams.height = cameraDefaults.height; cameraParams.along = cameraDefaults.along; cameraParams.aside = cameraDefaults.aside;     
+        camera.position.set(cameraParams.along, cameraParams.height, cameraParams.aside);
+        controls.update();
+        // TODO NOT PERFECT YET
+    }};
+    folderPresets.add(fActionCameraReset,'camera').name('reset camera');
 
 
 

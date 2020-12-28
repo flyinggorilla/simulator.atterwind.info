@@ -14,10 +14,10 @@ export function kts2ms(kts) {
 // returns wind speed at target height
 export function windSheer(windspeed, height, hellman) {
     // https://en.wikipedia.org/wiki/Wind_gradient
-    let v10 = kts2ms(windspeed);
-    let height10 = 10;
+    let v10m = kts2ms(windspeed);
+    let height10m = 10;
     //let hellman = 0.27; // alpha
-    let v = v10 * (Math.pow((height / height10), hellman));
+    let v = v10m * (Math.pow((height / height10m), hellman));
     //console.log(v);
     return (ms2kts(v));
 
