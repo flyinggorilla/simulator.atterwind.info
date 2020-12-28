@@ -62,6 +62,12 @@ if (mode != 'production') {
     app.get('/simulator.mjs', function(rootreq, rootres) {
         rootres.sendFile(path.join(__dirname + '/simulator.mjs'));
     });
+    app.get('/Wind.js', function(rootreq, rootres) {
+        rootres.sendFile(path.join(__dirname + '/Wind.js'));
+    });
+    app.get('/SailShape.js', function(rootreq, rootres) {
+        rootres.sendFile(path.join(__dirname + '/SailShape.js'));
+    });
     app.get('/mast.stl', function(rootreq, rootres) {
         rootres.sendFile(path.join(__dirname + '/mast.stl'));
     });
@@ -74,7 +80,6 @@ if (mode != 'production') {
     app.get('/waternormals.jpg', function(rootreq, rootres) {
         rootres.sendFile(path.join(__dirname + '/waternormals.jpg'));
     });
-
 }
 
 app.listen(listenPort, () => console.log(`Simulator app listening on port ${listenPort}!`))
