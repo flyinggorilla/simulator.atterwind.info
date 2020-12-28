@@ -65,6 +65,12 @@ if (mode != 'production') {
     app.get('/mast.stl', function(rootreq, rootres) {
         rootres.sendFile(path.join(__dirname + '/mast.stl'));
     });
+    app.get('/share.svg', function(rootreq, rootres) {
+        rootres.sendFile(path.join(__dirname + '/share.svg'));
+    });
+    app.get('/info.svg', function(rootreq, rootres) {
+        rootres.sendFile(path.join(__dirname + '/info.svg'));
+    });
     app.get('/waternormals.jpg', function(rootreq, rootres) {
         rootres.sendFile(path.join(__dirname + '/waternormals.jpg'));
     });

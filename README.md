@@ -7,9 +7,9 @@ This simulation visualizes wind sheer and how it influences apparent wind at var
 DONE:
 * improve wind indicator position by using treejs GROUPS to set pivot points at the cone tip
 * allow adjusting wind-sheer to stable or gusty wind-conditions
+* quicksettings: "downwind foiling", "downwind light winds", "upwind foiling", "upwind max height", "reaching"
 TODO:
 * add "info" button and create a windsheer and twist explainer page
-* quicksettings: "downwind foiling", "downwind light winds", "upwind foiling", "upwind max height", "reaching"
 * vizualize sail, and add "angle of attack" 
 * add water spray & boat speed visualization (simple lines or particle engine)
 https://stemkoski.github.io/Three.js/Particle-Engine.html 

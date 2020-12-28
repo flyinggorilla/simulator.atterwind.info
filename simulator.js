@@ -9,6 +9,23 @@ import { Water } from './Water.js';
 import { Sky } from './Sky.js';
 
 
+
+function getURLParameter(sParam) {
+    let sPageURL = window.location.search.substring(1);
+    //console.log("pageurl: " + sPageURL);
+    let sURLVariables = sPageURL.split('&');
+    for (var i = 0; i < sURLVariables.length; i++) {
+        var sParameterName = sURLVariables[i].split('=');
+        if (sParameterName[0] == sParam) {
+            //console.log("param: " + sParam + "=" + sParameterName[1]);
+            return sParameterName[1];
+        }
+    }
+    return null;
+}
+
+
+
 let showWater = true;
 let showDetails = false;
 
@@ -24,6 +41,17 @@ let windfield = [];
 let apparentwindfield = [];
 
 let loadingComplete = false;
+
+const boatLimits = {
+    maxSpeed: 35,
+    minHeading: -180,
+    maxHeading: 180
+}
+
+const windLimits = {
+    maxSpeed: 30,
+}
+
 
 const boatParams = {
     mastrotation: 0.0,
@@ -42,6 +70,57 @@ const sailParams = {
     mastArea: 0,
     sailArea: 0
 }
+
+const cameraParams = {
+    height: 10,
+    aside: 8,
+    along: 8
+}
+
+const cameraLimits = {
+    height: { min: 0, max: 100},
+    aside: { min: -100, max: 100 },
+    along: { min: -100, max: 100 }
+}
+
+
+function getUrlParameters() {
+    let boatSpeed = parseFloat(getURLParameter("boat.speed"));
+    if (boatSpeed >= 0 && boatSpeed <= boatLimits.maxSpeed)
+    {
+        boatParams.speed = boatSpeed; 
+    }
+    let boatHeading = parseFloat(getURLParameter("boat.heading"));
+    if (boatHeading >= boatLimits.minHeading && boatSpeed <= boatLimits.maxHeading)
+    {
+        boatParams.heading = boatHeading; 
+    }
+    let windSpeed = parseFloat(getURLParameter("wind.speed"));
+    if (windSpeed > 0 && windSpeed <= windLimits.maxSpeed)
+    {
+        windParams.speed = windSpeed; 
+    }   
+
+    let cameraHeight = parseFloat(getURLParameter("camera.height"));
+    if (cameraHeight >= cameraLimits.height.min && cameraHeight <= cameraLimits.height.max)
+    {
+        cameraParams.height = cameraHeight; 
+    }
+
+    let cameraAside = parseFloat(getURLParameter("camera.aside"));
+    if (cameraAside >= cameraLimits.aside.min && cameraAside <= cameraLimits.aside.max)
+    {
+        cameraParams.aside = cameraAside; 
+    }
+
+    let cameraAlong = parseFloat(getURLParameter("camera.along"));
+    if (cameraAlong >= cameraLimits.along.min && cameraAlong <= cameraLimits.along.max)
+    {
+        cameraParams.along = cameraAlong; 
+    }
+
+}
+getUrlParameters();
 
 // Sail shape based on parabolic curve
 // http://www.onemetre.net/design/Parab/Parab.htm
@@ -163,7 +242,11 @@ class SailShape {
         for (const p2 of this.shapeScaled) {
             if (p1) {
                 girth += p2.distanceTo(p1); //girth += math.sqrt((x2-x1)**2 + (y2-y1)**2)
-                if (girth >= (mastWidth / 2)) {
+                /*if (girth >= (mastWidth / 2)) {
+                    return p2.clone().sub(p1).angle();
+
+                }*/
+                if (girth >= (mastWidth)) {
                     return p2.angle();
                 }
             }
@@ -175,9 +258,10 @@ class SailShape {
 
     // number of vertices along the sail shape
     // in case of clipping, provie a width of clipped girth length 
+    // substract mast width
     // return array of angles in [rad] -- 
-    getVerticesAngles(numberOfPoints, clipOffWidth = null) {
-        const segmentLength = this.girth / (numberOfPoints - 1);
+    getVerticesAngles(numberOfPoints, mastWidth, clipOffWidth = null) {
+        const segmentLength = (this.girth - mastWidth) / (numberOfPoints - 1);
         let point = 0;
         let girth = 0;
         let angles = [];
@@ -185,7 +269,7 @@ class SailShape {
         for (const p2 of this.shapeScaled) {
             if (p1) {
                 girth += p2.distanceTo(p1); //girth += math.sqrt((x2-x1)**2 + (y2-y1)**2)
-                if ((girth >= point * segmentLength) || (clipOffWidth && (girth > clipOffWidth))) {
+                if ((girth >= point * segmentLength + mastWidth) || (clipOffWidth && (girth > clipOffWidth))) {
                     point+= 1;
                     angles.push(p2.angle());
                 } 
@@ -291,7 +375,7 @@ function init() {
     //camera.position.set(2, 0, 3);
 
     camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 20000);
-    camera.position.set(8, 8, 10);
+    camera.position.set(cameraParams.along, cameraParams.height, cameraParams.aside);
 
     const cameraHelper = new THREE.CameraHelper(camera);
 
@@ -447,6 +531,10 @@ function init() {
         folderWater.hide();
     }
 
+    function buildStateUrl() {
+        return "?boat.heading=" + boatParams.heading + "&boat.speed=" + boatParams.speed + "&wind.speed=" + windParams.speed 
+            + "&camera.height=" + camera.position.y.toFixed(1) + "&camera.aside=" + camera.position.z.toFixed(1) + "&camera.along=" + camera.position.x.toFixed(1);
+    }
 
     const folderBoat = gui.addFolder('Boat');
     //folderBoat.add(boatParams, 'mastrotation', -90, 90, 1).name('mastrotation').listen(); // add .listen() to receive updates!!
@@ -459,6 +547,31 @@ function init() {
     folderWind.add(windParams, 'speed', 0, 30, 1).name('speed').onChange(recalc).listen();
     folderWind.add(windParams, 'hellman', { unstable: 0.06, neutral: 0.10, stable: 0.27 }).name('condition').onChange(recalc);
     folderWind.open();
+
+    function shareSimulatorView() {
+        window.history.pushState({}, "Attwerwind simulator position URL", buildStateUrl());    
+    }
+    document.getElementById("shareLink").onclick = shareSimulatorView;
+    let fActionShare = { share:function(){ 
+                            shareSimulatorView();
+                        }};
+    const folderActions = gui.addFolder("Actions");
+    folderActions.add(fActionShare,'share').name('share view');
+
+    const folderPresets = gui.addFolder("Presets");
+    let fActionDownwindFoiling = { downfoil:function(){ boatParams.heading = 135; boatParams.speed = 22; windParams.speed = 15 }};
+    folderPresets.add(fActionDownwindFoiling,'downfoil').name('downwind foiling');
+    let fActionUpwindFoiling = { upfoil:function(){ boatParams.heading = 50; boatParams.speed = 17; windParams.speed = 15 }};
+    folderPresets.add(fActionUpwindFoiling,'upfoil').name('upwind foiling');
+    let fActionUpwindFlying = { upfly:function(){ boatParams.heading = 47; boatParams.speed = 9; windParams.speed = 10 }};
+    folderPresets.add(fActionUpwindFlying,'upfly').name('upwind');
+    let fActionDownwindLight = { downlight:function(){ boatParams.heading = 135; boatParams.speed = 5; windParams.speed = 5 }};
+    folderPresets.add(fActionDownwindLight,'downlight').name('downwind light');
+    let fActionUpwindLight = { uplight:function(){ boatParams.heading = 48; boatParams.speed = 3; windParams.speed = 5 }};
+    folderPresets.add(fActionUpwindLight,'uplight').name('upwind light');
+
+
+
 
     // Wind
 
@@ -796,6 +909,8 @@ function addShadowedLight(x, y, z, color, intensity) {
 }
 
 
+
+
 function onWindowResize() {
 
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -844,15 +959,21 @@ function render() {
 
     if (loadingComplete && boat) {
         //boat.position.y = Math.sin( time ) * 20 + 5;
-        boat.rotation.x = - Math.PI / 2 + Math.sin(time) * 0.01;
-        boat.rotation.y = Math.cos(time) * 0.034;
-        boat.rotation.z = Math.cos(time) * 0.01 - Math.sin(time) * 0.02 - grad2rad(boatParams.heading);
+
+        if (false) {
+            boat.rotation.x = - Math.PI / 2 + Math.sin(time) * 0.01;
+            boat.rotation.y = Math.cos(time) * 0.034;
+            boat.rotation.z = Math.cos(time) * 0.01 - Math.sin(time) * 0.02 - grad2rad(boatParams.heading);
+        } else {
+            boat.rotation.z = - grad2rad(boatParams.heading);
+        }
 
         let mainSheetLength = Math.round(recalcMainSheet());
 
 
         //mast.rotation.y = boatParams.mastrotation * Math.PI / 180.0;
         //if (boatParams.mastrotation != lastMastrotation) {
+        // TODO : leverage update() functions to set a "dirty" flag instead of this list of comparisons
         if ((windParams.speed != lastWindSpeed) || (windParams.hellman != lastHellman) ||
             (boatParams.heading != lastBoatHeading) || (boatParams.speed != lastBoatSpeed) ||
             (lastMainSheetLength != mainSheetLength)) {
@@ -875,36 +996,56 @@ function render() {
             // TODO: create functions for mast-rotation in dependence on heading and (wind)speed
             // TODO: create line for mainsheet and display length of it --- implies traveller!!!!
             // mast and luff rotation
-            let deltarot = 0;
-            let angleOfAttack = 0;
+
             let dirfact = boatParams.heading < 0 ? 1.0 : -1.0; // direction factor 
             sailShape.calcShape(sailTackMastDistance, sailMastWidth); //############################# ## # ## # #TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO************************### consants!!!
 
             let aw = apparentWind(boatParams.speed, boatParams.heading, windParams.speed, 0);
-            let mr = calcMastRotation(aw)
+            //let mr = calcMastRotation(aw)
 
-            //console.log("verticeAngles: " + verticeAngles.length);
-            //console.log("dirfact: " + dirfact);
-            //for (let i in verticeAngles) {
-            //    console.log("angle[" + i + "]: " + rad2grad(verticeAngles[i]).toFixed(2) + "°");
-            //}
+            let chordAngleOfAttack = 20; // optimal angle of attack for 10% camber; http://www.onemetre.net/design/Entry/entry.htm
+            const mastMaxRotation = 90;
+            const maxChordRotationPerSailLevel = 90.0 / sailLevels; //Math.PI/2 / sailLevels;
 
-            boatParams.mastrotation = mr.mastRotation*dirfact;
+            let absAwa = Math.abs(aw.awa);
+            let mastEntryAngle = rad2grad(sailShape.getMastAngle(sailMastWidth)); // * Math.max(50 - apparentWind.aws, 0) / 50;
+            if (absAwa < 5) {  //TODO################
+                 chordAngleOfAttack = 0;
+                mastEntryAngle = 0;
+            }
+            //console.log("absawa: " + absAwa + " mastangleofattack: " + mastEntryAngle);
 
+            let mastRotation = Math.min(absAwa + chordAngleOfAttack - mastEntryAngle, mastMaxRotation); // add 10 degrees angle of attack to aparrent wind // TODO depends on wind-speed????
+       
+            boatParams.mastrotation = mastRotation*dirfact;
 
-            //deltarot = (Math.PI / 12 +  Math.PI / 12 * Math.max(50-aw.aws, 0)/50) * angleOfAttack / grad2rad(25);
+            //TODO sail should start with mast foreside!!!!!!!!!!!!!!!! ###################################
 
             // adjust sailshape
             let luffAxis = new THREE.Vector3(0, 0, 1);
             let power = 0.0;
+            let lastChordRotation = null;
             for (let level = 0; level <= sailLevels; level++) {
                 let overWaterHeight = level * sailLevelHeight + mastFootOverWaterHeight;
                 let tws = windSheer(windParams.speed, overWaterHeight / 1000.0, windParams.hellman);
                 let aw = apparentWind(boatParams.speed, boatParams.heading, tws, 0);
-                let awa = aw.awa;
-                let deltarot = grad2rad(boatParams.mastrotation - awa);
-                //deltarot = 0;
-                if (aw.awa > 25) {
+                let levelAbsAwa = Math.abs(aw.awa);
+
+
+                let chordAngle = levelAbsAwa - chordAngleOfAttack;
+                if (chordAngle < 0) {
+                    chordAngle = 0;
+                } else if (chordAngle > 90) {
+                    chordAngle = 90;
+                }
+    
+                let chordRotation = grad2rad(chordAngle - mastRotation);
+                if (lastChordRotation && ((chordRotation - lastChordRotation) > maxChordRotationPerSailLevel)) {
+                    chordRotation = lastChordRotation + maxChordRotationPerSailLevel;
+                }
+                lastChordRotation = chordRotation;
+
+                if (aw.aws > 25) {
                     power += aw.aws; // sum up all wind speeds
                 }
 
@@ -912,14 +1053,14 @@ function render() {
                 /*if (clipWidth) {
                     console.log("zero vertice level: " + level + " clipWidth: " + clipWidth.toFixed(2));
                 }*/
-                let verticeAngles = sailShape.getVerticesAngles(sailVerticesPerLevel, clipWidth);
+                let verticeAngles = sailShape.getVerticesAngles(sailVerticesPerLevel, sailMastWidth, clipWidth);
 
                 // apply rotation to the sail-points according to the parabolic sailshape
                 let lastrot = 0;
                 for (let v = 1; v < sailVerticesPerLevel; v++) {
                     let i = level * sailVerticesPerLevel + v;
                     sailGeometry.vertices[i].copy(flatSailgeometry.vertices[i]);
-                    sailGeometry.vertices[i].applyAxisAngle(luffAxis, deltarot - verticeAngles[v] * dirfact);
+                    sailGeometry.vertices[i].applyAxisAngle(luffAxis, -(chordRotation + verticeAngles[v]) * dirfact);
                 }
 
 
@@ -937,17 +1078,17 @@ function render() {
 
             boatParams.vmg = Math.abs(boatParams.speed * Math.cos(grad2rad(boatParams.heading)));
 
-            dataDiv.innerHTML = "Mast rotation: " + Math.round(mr.mastRotation) +
-                "° <br> Mast angle of attack: " + Math.round(mr.mastAngleOfAttack) + "°" +
+            dataDiv.innerHTML = "Mast rotation: " + Math.round(boatParams.mastrotation) +
+                "° <br> Mast angle of attack: " + mastEntryAngle.toFixed(1) + "°" +
                 "<br>Apparent wind speed: " + Math.round(aw.aws) + "kts" +
-                "<br>Apparent wind angle: " + Math.round(Math.abs(aw.awa)) + "°" +
+                "<br>Apparent wind angle: " + Math.round(absAwa) + "°" +
                 "<br>Sail area: " + (sailParams.mastArea + sailParams.sailArea).toFixed(2) + "m² (mast: " + sailParams.mastArea.toFixed(2) + "m², sail: " + sailParams.sailArea.toFixed(2) + "m²)" + //&sup2;
                 "<br>Mast foot over water: " + (mastFootOverWaterHeight / 1000).toFixed(1) + "m" +
                 "<br>Mainsheet give: " + Math.round(mainSheetLength / 10 - 83) + "cm" +
                 "<br>VMG: " + boatParams.vmg.toFixed(1) + "kts" +
                 "<br>Apparent wind power: " + power.toFixed(1) + "kts average over sail" +
-                "<br>lastrot: " + rad2grad(deltarot).toFixed(1) +
-                "<br>deltarot: " + rad2grad(deltarot).toFixed(1);
+                "<br>lastrot: "  +
+                "<br>deltarot: " ;
 
             lastMastrotation = boatParams.mastrotation;
             lastBoatHeading = boatParams.heading;
@@ -985,7 +1126,7 @@ function recalcMainSheet() {
 
 
 
-function calcMastRotation(apparentWind) {
+/*function calcMastRotation(apparentWind) {
     let mastAngleOfAttack = sailShape.getMastAngle(sailMastWidth) * Math.max(50 - apparentWind.aws, 0) / 50;
     if (Math.abs(apparentWind.awa) < 10) {
         mastAngleOfAttack = 0;
@@ -993,7 +1134,7 @@ function calcMastRotation(apparentWind) {
     let mastRotation = Math.min(Math.abs(apparentWind.awa) + mastAngleOfAttack, 75.0); // add 10 degrees angle of attack to aparrent wind // TODO depends on wind-speed????
     let actualMastAngleOfAttack = mastRotation - Math.abs(apparentWind.awa);
     return { mastRotation: mastRotation, mastAngleOfAttack: actualMastAngleOfAttack };
-}
+}*/
 
 function recalcSailShape(windspeed, sog, cog) {
     let tws = windSheer(windspeed, height);

@@ -109,3 +109,9 @@ a, button, input, select {
 	color: whitesmoke;
 	line-height: normal;
   }
+
+  #links {
+	position: fixed; 
+	bottom: 5px;
+	right: 5px
+  }
