@@ -24,17 +24,15 @@ function getURLParameter(sParam) {
     return null;
 }
 
-const sailShape = new SailShape();
-
 let showWater = true;
-let debugHelperAxes = false;
+let debugHelperAxes = true;
 
 let container, stats;
 
 let camera, controls, cameraTarget, scene, renderer;
 let water, sun, mesh;
 
-let boat, mast, sailtop, sailfoot, mainsheet;
+let boat, mast, traveller, travellerCar;
 
 let windfield = [];
 
@@ -43,9 +41,12 @@ let apparentwindfield = [];
 let loadingComplete = false;
 
 const boatLimits = {
-    maxSpeed: 35, 
+    maxSpeed: 35, // [kts]
     minHeading: -180, // [grad]
-    maxHeading: 180   // [grad]
+    maxHeading: 180,   // [grad]
+    minFoilingSpeed: 13,  // [kts]
+    foilingBoatLift: 0.52,  // [m] (approx)
+    waterlineToMastFootHeight: 0.3 // [m]  (approx)
 }
 
 const windLimits = {
@@ -61,6 +62,12 @@ const boatParams = {
     vmg: 0.0
 }
 
+const travellerParams = {
+    position: 0, // [m] measured as tangent along the aft traveller radius
+    minPosition: -0.8, //  [m]
+    maxPosition: 0.8  // [m]
+}
+
 const windConditions = { unstable: 0.06, neutral: 0.10, stable: 0.27 };    
 const windParams = {
     speed: 5.0, // [kts]
@@ -69,19 +76,27 @@ const windParams = {
 
 const sailParams = {
     mastArea: 0,
-    sailArea: 0
+    sailArea: 0,
+    cunningham: 1
 }
 
 const cameraDefaults = {
     height: 10, // [m]
     aside: 8, // [m]
-    along: 8 // [m]
+    along: 8, // [m]
 }
 
 const cameraParams = {
     height: cameraDefaults.height, // [m]
     aside: cameraDefaults.aside, // [m]
-    along: cameraDefaults.along // [m]
+    along: cameraDefaults.along, // [m]
+    targetAlong: 0, // x
+    targetHeight: 5,  // y
+    targetAside: 0, // z
+    rotationX: 0, // [grad]
+    rotationY: 0, // [grad]
+    rotationZ: 0, // [grad]
+    syncRotation: false // synchronize boat heading with camera rotation
 }
 
 const cameraLimits = {
@@ -92,55 +107,79 @@ const cameraLimits = {
 
 
 function getUrlParameters() {
-    let boatSpeed = parseFloat(getURLParameter("boat.speed"));
+    let boatSpeed = parseFloat(getURLParameter("bs"));
     if (boatSpeed >= 0 && boatSpeed <= boatLimits.maxSpeed)
     {
         boatParams.speed = boatSpeed; 
     }
-    let boatHeading = parseFloat(getURLParameter("boat.heading"));
+    let boatHeading = parseFloat(getURLParameter("bh"));
     if (boatHeading >= boatLimits.minHeading && boatSpeed <= boatLimits.maxHeading)
     {
         boatParams.heading = boatHeading; 
     }
-    let windSpeed = parseFloat(getURLParameter("wind.speed"));
+    let windSpeed = parseFloat(getURLParameter("ws"));
     if (windSpeed > 0 && windSpeed <= windLimits.maxSpeed)
     {
         windParams.speed = windSpeed; 
     }   
 
-    let cameraHeight = parseFloat(getURLParameter("camera.height"));
+    let cameraHeight = parseFloat(getURLParameter("ch"));
     if (cameraHeight >= cameraLimits.height.min && cameraHeight <= cameraLimits.height.max)
     {
         cameraParams.height = cameraHeight; 
     }
-
-    let cameraAside = parseFloat(getURLParameter("camera.aside"));
+    let cameraAside = parseFloat(getURLParameter("cs"));
     if (cameraAside >= cameraLimits.aside.min && cameraAside <= cameraLimits.aside.max)
     {
         cameraParams.aside = cameraAside; 
     }
-
-    let cameraAlong = parseFloat(getURLParameter("camera.along"));
+    let cameraAlong = parseFloat(getURLParameter("cl"));
     if (cameraAlong >= cameraLimits.along.min && cameraAlong <= cameraLimits.along.max)
     {
         cameraParams.along = cameraAlong; 
     }
 
-    let windHellman = parseFloat(getURLParameter("wind.hellman"));
+    let cameraRotationX = parseFloat(getURLParameter("crx"));
+    if (cameraRotationX >= -360 && cameraRotationX <= 360)
+    {
+        cameraParams.rotationX = cameraRotationX; 
+    }
+    let cameraRotationY = parseFloat(getURLParameter("cry"));
+    if (cameraRotationY >= -360 && cameraRotationY <= 360)
+    {
+        cameraParams.rotationY = cameraRotationY; 
+    }
+    let cameraRotationZ = parseFloat(getURLParameter("crz"));
+    if (cameraRotationZ >= -360 && cameraRotationX <= 360)
+    {
+        cameraParams.rotationZ = cameraRotationZ; 
+    }
+
+    let windHellman = parseFloat(getURLParameter("wh"));
     if (windHellman >= windConditions.unstable && windHellman <= windConditions.stable)
     {
         windParams.hellman = windHellman; 
     }
 
+    let cameraTargetAlong = parseFloat(getURLParameter("ctl"));
+    if (cameraTargetAlong >= cameraLimits.along.min && cameraTargetAlong <= cameraLimits.along.max)
+    {
+        cameraParams.targetAlong = cameraTargetAlong; 
+    }
+    let cameraTargetAside = parseFloat(getURLParameter("cts"));
+    if (cameraTargetAside >= cameraLimits.aside.min && cameraTargetAside <= cameraLimits.aside.max)
+    {
+        cameraParams.targetAside = cameraTargetAside; 
+    }
+    let cameraTargetHeight = parseFloat(getURLParameter("cth"));
+    if (cameraTargetHeight >= cameraLimits.height.min && cameraTargetHeight <= cameraLimits.height.max)
+    {
+        cameraParams.targetHeight = cameraTargetHeight; 
+    }
+
+
 }
 getUrlParameters();
-
-
-
-
-
-
-sailShape.calcShape(345);
 
 
 let dataDiv;
@@ -164,6 +203,7 @@ function init() {
 
     camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 20000);
     camera.position.set(cameraParams.along, cameraParams.height, cameraParams.aside);
+    camera.rotation.set(grad2rad(cameraParams.rotationX), grad2rad(cameraParams.rotationY), grad2rad(cameraParams.rotationZ));
     const cameraHelper = new THREE.CameraHelper(camera);
 
     scene = new THREE.Scene();
@@ -176,7 +216,7 @@ function init() {
     // renderer
     controls = new OrbitControls(camera, renderer.domElement);
     controls.maxPolarAngle = Math.PI * 0.495;
-    controls.target.set(0, 5, 0);
+    controls.target.set(cameraParams.targetAlong, cameraParams.targetHeight, cameraParams.targetAside);
     controls.minDistance = 1.0;
     controls.maxDistance = 1000.0;
     controls.enableKeys = false;
@@ -275,19 +315,21 @@ function init() {
 
     
     function buildStateUrl() {
-        return "?boat.heading=" + boatParams.heading + "&boat.speed=" + boatParams.speed + "&wind.speed=" + windParams.speed + "&wind.hellman=" + windParams.hellman
-            + "&camera.height=" + camera.position.y.toFixed(1) + "&camera.aside=" + camera.position.z.toFixed(1) + "&camera.along=" + camera.position.x.toFixed(1);
+        return "?bh=" + boatParams.heading + "&bs=" + boatParams.speed + "&ws=" + windParams.speed + "&wh=" + windParams.hellman
+            + "&ch=" + camera.position.y.toFixed(1) + "&cs=" + camera.position.z.toFixed(1) + "&cl=" + camera.position.x.toFixed(1)
+            + "&cry=" + rad2grad(camera.rotation.y).toFixed(1) + "&crz=" + rad2grad(camera.rotation.z).toFixed(1) + "&crx=" + rad2grad(camera.rotation.x).toFixed(1)
+            + "&cth=" + controls.target.y.toFixed(1) + "&cts=" + controls.target.z.toFixed(1) + "&ctl=" + controls.target.x.toFixed(1);
     }
 
     const folderBoat = gui.addFolder('Boat');
-    //folderBoat.add(boatParams, 'mastrotation', -90, 90, 1).name('mastrotation').listen(); // add .listen() to receive updates!!
-    folderBoat.add(boatParams, 'heading', -180, 180, 1).name('heading').onChange(recalc).listen();
-    folderBoat.add(boatParams, 'speed', 0, 30, 1).name('speed').onChange(recalc).listen();
+    folderBoat.add(boatParams, 'heading', boatLimits.minHeading, boatLimits.maxHeading, 1).name('heading').onChange(recalc).listen();
+    folderBoat.add(boatParams, 'speed', 0, boatLimits.maxSpeed, 1).name('speed').onChange(recalc).listen();
     folderBoat.add(boatParams, 'details').name("details"); 
+    folderBoat.add(cameraParams, 'syncRotation').name("sync heading"); 
     folderBoat.open();
 
     const folderWind = gui.addFolder('Wind');
-    folderWind.add(windParams, 'speed', 0, 30, 1).name('speed').onChange(recalc).listen();
+    folderWind.add(windParams, 'speed', 0, windLimits.maxSpeed, 1).name('speed').onChange(recalc).listen();
     folderWind.add(windParams, 'hellman', windConditions).name('condition').onChange(recalc);
     folderWind.open();
 
@@ -298,27 +340,29 @@ function init() {
     let fActionShare = { share:function(){ 
                             shareSimulatorView();
                         }};
-    const folderActions = gui.addFolder("Actions");
-    folderActions.add(fActionShare,'share').name('share view');
+    const folderAdvanced = gui.addFolder("Experimental");
+    folderAdvanced.add(sailParams, 'cunningham', 1, 10, 1).name('cunningham').onChange(recalc).listen();
 
     const folderPresets = gui.addFolder("Presets");
-    let fActionDownwindFoiling = { downfoil:function(){ boatParams.heading = 135; boatParams.speed = 22; windParams.speed = 15 }};
+    let fActionDownwindFoiling = { downfoil:function(){ boatParams.heading = 135; boatParams.speed = 22; windParams.speed = 15; recalc();  }};
     folderPresets.add(fActionDownwindFoiling,'downfoil').name('downwind foiling');
-    let fActionUpwindFoiling = { upfoil:function(){ boatParams.heading = 50; boatParams.speed = 17; windParams.speed = 15 }};
+    let fActionUpwindFoiling = { upfoil:function(){ boatParams.heading = 50; boatParams.speed = 17; windParams.speed = 15; recalc();  }};
     folderPresets.add(fActionUpwindFoiling,'upfoil').name('upwind foiling');
-    let fActionUpwindFlying = { upfly:function(){ boatParams.heading = 47; boatParams.speed = 9; windParams.speed = 10 }};
+    let fActionUpwindFlying = { upfly:function(){ boatParams.heading = 47; boatParams.speed = 9; windParams.speed = 10; recalc();  }};
     folderPresets.add(fActionUpwindFlying,'upfly').name('upwind');
-    let fActionDownwindLight = { downlight:function(){ boatParams.heading = 135; boatParams.speed = 5; windParams.speed = 5 }};
+    let fActionDownwindLight = { downlight:function(){ boatParams.heading = 135; boatParams.speed = 5; windParams.speed = 5; recalc();  }};
     folderPresets.add(fActionDownwindLight,'downlight').name('downwind light');
-    let fActionUpwindLight = { uplight:function(){ boatParams.heading = 48; boatParams.speed = 3; windParams.speed = 5 }};
+    let fActionUpwindLight = { uplight:function(){ boatParams.heading = 48; boatParams.speed = 3; windParams.speed = 5; recalc(); }};
     folderPresets.add(fActionUpwindLight,'uplight').name('upwind light');
     let fActionCameraReset = { camera:function(){ 
         cameraParams.height = cameraDefaults.height; cameraParams.along = cameraDefaults.along; cameraParams.aside = cameraDefaults.aside;     
         camera.position.set(cameraParams.along, cameraParams.height, cameraParams.aside);
         controls.update();
+        recalc();
         // TODO NOT PERFECT YET
     }};
     folderPresets.add(fActionCameraReset,'camera').name('reset camera');
+    folderPresets.add(fActionShare,'share').name('share view');
 
 
 
@@ -406,22 +450,35 @@ function init() {
 
         boat.scale.copy(BOATSCALE);
         //mesh.scale.set(0.0001, 0.0001, 0.0001);
-        boatMesh.position.set(50, -1000, 0); // fore, port, up .... in mm
+        boatMesh.position.set(50, -1000, 80); // fore, port, up .... in mm
         boat.rotation.set(- Math.PI / 2, 0, 0);
         boat.position.set(0, 0.5, 0);
 
+        traveller = new THREE.Group();
+        let travellerGeometry = new THREE.BoxGeometry(40, 30, 20); // fore, port, up .... in m
+        let travellerMaterial = new THREE.MeshStandardMaterial({ color: 0xFF0000 });        
+        travellerCar = new THREE.Mesh(travellerGeometry, travellerMaterial);
+        const travellerRadius = 4.0; // 4m radius in CAD drawing 
+        travellerCar.position.x = -travellerRadius*1000;
+        traveller.position.set(4000-2440, 55, 340);  // TODO reposition the Geometries of the boat, the mast the traveller to the middle!!!
+        traveller.add(travellerCar);
+
+
+        boat.add(traveller);
+
         if (debugHelperAxes) {
-            const axes = new THREE.AxesHelper();
+            const axes = new THREE.AxesHelper(1000);
             axes.material.depthTest = false;
             axes.renderOrder = 1;
-            axes.scale.set(1000, 1000, 1000);
             boat.add(axes);
+            traveller.add(new THREE.AxisHelper(1000));
         }
 
 
         boat.castShadow = true;
         boat.receiveShadow = true;
 
+        boat.add(new THREE.AxisHelper(1000));
         boat.add(boatMesh);
         scene.add(boat);
 
@@ -438,7 +495,7 @@ function init() {
 
             mast = new THREE.Mesh(geometry, meshMaterial);
 
-            mast.position.set(-600, 35, +9380); // fore, port, up ... [mm]
+            mast.position.set(-600, 55, +9460); // fore, port, up ... [mm]
             mast.rotation.set(- grad2rad(90), 0, - grad2rad(4));
             mast.castShadow = true;
             mast.receiveShadow = true;
@@ -457,10 +514,11 @@ function init() {
             const mainSheetMaterial = new THREE.LineBasicMaterial({ color: 0x8f0f0f });
             const points = [];
             points.push(new THREE.Vector3(0, 0, 0));
-            points.push(new THREE.Vector3(-2450, 30, 290));
+            points.push(new THREE.Vector3(-2430, 60, 410)); // for, port, up ... in mm
 
             mainSheetGeometry = new THREE.Geometry().setFromPoints(points);
             mainSheet = new THREE.Line(mainSheetGeometry, mainSheetMaterial);
+
             boat.add(mainSheet);
         });
 
@@ -522,7 +580,7 @@ function rigSail() {
         // function defining lech sailshape
         let sailWidth;
         let clipOffWidth;
-        if (height <= sailTackHeight) {
+        if (height < sailTackHeight) {
             sailWidth = tackMastDistance;
             clipOffWidth = decksweeper + (tackMastDistance - decksweeper) * height / sailTackHeight;
             //override
@@ -660,7 +718,8 @@ function animate() {
 }
 
 function recalc() {
-    //console.log("recalc");
+    recalcBoatConfiguration = true;
+    console.log("recalc");
 }
 
 function rad2grad(rad) {
@@ -672,47 +731,62 @@ function grad2rad(grad) {
 }
 
 
-let lastWindSpeed, lastBoatSpeed, lastBoatHeading, lastHellman, lastMainSheetLength, lastMastrotation = 0;
+//let lastWindSpeed, lastBoatSpeed, lastBoatHeading, lastHellman, lastMainSheetLength, 
+let recalcBoatConfiguration = true;
+let lastMastrotation = 0;
+let lastCunningham = null;
 let flatSailgeometry = null;
+let sailShape = null;
 function render() {
-
-    //const timer = Date.now() * 0.0005;
 
     const time = performance.now() * 0.0025;
 
-    //camera.position.x = Math.cos(timer) * 3;
-    //camera.position.z = Math.sin(timer) * 3;
-
-
     if (loadingComplete && boat) {
-        let boatHeadingRad = grad2rad(boatParams.heading);
 
-        if (false) {
+        if (false) {  // boat rocking
             boat.rotation.x = - Math.PI / 2 + Math.sin(time) * 0.01;
             boat.rotation.y = Math.cos(time) * 0.034;
             boat.rotation.z = Math.cos(time) * 0.01 - Math.sin(time) * 0.02 - boatHeadingRad;
-        } else {
-            boat.rotation.z = - boatHeadingRad;
-        }
-
-        let mainSheetLength = Math.round(recalcMainSheet());
-
-
+        } 
+        
         //mast.rotation.y = boatParams.mastrotation * Math.PI / 180.0;
         //if (boatParams.mastrotation != lastMastrotation) {
         // TODO : leverage update() functions to set a "dirty" flag instead of this list of comparisons
-        if ((windParams.speed != lastWindSpeed) || (windParams.hellman != lastHellman) ||
+        /*if ((windParams.speed != lastWindSpeed) || (windParams.hellman != lastHellman) ||
             (boatParams.heading != lastBoatHeading) || (boatParams.speed != lastBoatSpeed) ||
-            (lastMainSheetLength != mainSheetLength)) {
+            (lastMainSheetLength != mainSheetLength) || (sailParams.cunningham != lastCunningham)) { */
 
-            if (boatParams.speed >= 13) {
-                //boat.position.set(0, 0.6, 0); // foiling height
-                boat.position.y = 0.6; // foiling height
-            } else {
-                //boat.position.set(0, 0.15, 0); // non-foiling
-                boat.position.y = 0.08; // foiling height ******************* CHANGE TO  .y
+        if (recalcBoatConfiguration) {
+
+            let boatHeadingRad = grad2rad(boatParams.heading);
+            if (sailParams.cunningham != lastCunningham) { 
+                sailShape = new SailShape(sailTackMastDistance, sailMastWidth, sailParams.cunningham);
+                recalcBoatConfiguration = true;
             }
-            let mastFootOverWaterHeight = (boat.position.y + 0.2) * 1000;
+
+            if (boat.rotation.z != boatHeadingRad) {
+                recalcBoatConfiguration = true;
+                let deltarot = boatHeadingRad + boat.rotation.z;
+                boat.rotation.z = -boatHeadingRad;
+                if (cameraParams.syncRotation) {
+                    //let cpos = camera.position.clone();
+                    let cp = new THREE.Vector2(camera.position.x, camera.position.z);
+                    cp.rotateAround(new THREE.Vector2(0,0), deltarot);
+                    camera.position.x = cp.x;
+                    camera.position.z = cp.y;
+                    camera.rotateOnAxis(new THREE.Vector3(0, 1, 0), deltarot);
+                    camera.lookAt(scene.position); 
+                    controls.update();
+                }
+            }
+            boat.updateWorldMatrix();
+    
+            if (boatParams.speed >= boatLimits.minFoilingSpeed) {
+                boat.position.y = boatLimits.foilingBoatLift; // foiling height
+            } else {
+                boat.position.y = 0.00; // foiling height ******************* CHANGE TO  .y
+            }
+            let mastFootOverWaterHeight = (boat.position.y + boatLimits.waterlineToMastFootHeight) * 1000;
 
             if (!flatSailgeometry) {
                 flatSailgeometry = sailGeometry.clone();
@@ -725,8 +799,7 @@ function render() {
             // mast and luff rotation
 
             let dirfact = boatHeadingRad < 0 ? 1.0 : -1.0; // direction factor 
-            sailShape.calcShape(sailTackMastDistance, sailMastWidth); //############################# ## # ## # #TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO************************### consants!!!
-
+            //sailShape.calcShape(sailTackMastDistance, sailMastWidth); //############################# ## # ## # #TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO************************### consants!!!
             let aw = Wind.apparentWind(boatParams.speed, boatHeadingRad, windParams.speed, 0);
             //let mr = calcMastRotation(aw)
 
@@ -735,7 +808,7 @@ function render() {
             const maxChordRotationPerSailLevelRad = Math.PI/2 / sailLevels;
 
             let absAwaRad = Math.abs(aw.awa);
-            let mastEntryAngleRad = sailShape.getMastAngle(sailMastWidth);
+            let mastEntryAngleRad = sailShape.mastAngleRad; //sailShape.getMastAngle(sailMastWidth);
             if (absAwaRad < 0.01) {  //TODO################
                  chordAngleOfAttackRad = 0;
                 mastEntryAngleRad = 0;
@@ -748,6 +821,11 @@ function render() {
             let luffAxis = new THREE.Vector3(0, 0, 1);
             let power = 0.0;
             let lastChordRotationRad = null;
+            let tackChordRotationRad = null;
+            let topChordRotationRad = null;
+            let sailTwist = null;
+            let sailTackLevel = Math.round(sailTackHeight / sailLevelHeight) + 1;
+            //console.log("calced tacklevel: " + sailTackLevel);
             for (let level = 0; level <= sailLevels; level++) {
                 let overWaterHeight = level * sailLevelHeight + mastFootOverWaterHeight;
                 let tws = Wind.windSheer(windParams.speed, overWaterHeight / 1000.0, windParams.hellman);
@@ -758,6 +836,9 @@ function render() {
                 let chordAngleRad = levelAbsAwaRad - chordAngleOfAttackRad;
                 if (chordAngleRad < 0) {
                     chordAngleRad = 0;
+                    console.log("FIX THIS ANGLE ISSUE");
+                    // TODO FIX THIS ANGLE ISSUE
+                    // http://localhost:3001/?boat.heading=-170&boat.speed=5&wind.speed=5&wind.hellman=0.27&camera.height=7.1&camera.aside=0.4&camera.along=12.2
                 } else if (chordAngleRad > Math.PI/2) {
                     chordAngleRad = Math.PI/2;
                 }
@@ -772,34 +853,58 @@ function render() {
                     power += aw.aws; // sum up all wind speeds
                 }
 
-                let clipWidth = sailClipWidthPerLevel[level];
+                let clipWidth = sailClipWidthPerLevel[level]; // null, if level is at or above tack
                 /*if (clipWidth) {
                     console.log("zero vertice level: " + level + " clipWidth: " + clipWidth.toFixed(2));
                 }*/
                 let verticeAnglesRad = sailShape.getVerticesAngles(sailVerticesPerLevel, sailMastWidth, clipWidth);
 
                 // apply rotation to the sail-points according to the parabolic sailshape
-                let lastrot = 0;
                 for (let v = 1; v < sailVerticesPerLevel; v++) {
                     let i = level * sailVerticesPerLevel + v;
                     sailGeometry.vertices[i].copy(flatSailgeometry.vertices[i]);
                     sailGeometry.vertices[i].applyAxisAngle(luffAxis, -(chordRotationRad + verticeAnglesRad[v]) * dirfact);
                 }
 
-
+                if (level == sailTackLevel) {
+                    // get chord angle at tack level
+                    tackChordRotationRad = chordRotationRad;
+                } else if (level == sailLevels) {
+                    topChordRotationRad = chordRotationRad;
+                    sailTwist = topChordRotationRad - tackChordRotationRad;                    
+                }
 
             }
+
             power /= sailLevels;
             sailGeometry.verticesNeedUpdate = true;
 
             recalcWindField(windParams.speed, windParams.hellman);
             recalcApparentWindField(windParams.speed, boatParams.speed, boatHeadingRad, windParams.hellman);
-
+            //travellerParams.position = recalcTravellerPosition(mastRotationRad, tackChordRotationRad, topChordRotationRad, dirfact);
             boatParams.vmg = Math.abs(boatParams.speed * Math.cos(boatHeadingRad));
             boatParams.mastrotation = rad2grad(mastRotationRad)*dirfact;
 
             mast.rotateY(grad2rad(boatParams.mastrotation - lastMastrotation));
             //mast.rotation.y = grad2rad(boatParams.mastrotation);
+
+            scene.updateMatrixWorld();
+            //boat.updateWorldMatrix(true, true);
+
+            // project the leech down to the traveller and calculate the distance aside 
+            let pTackWorld = sail.localToWorld(sailGeometry.vertices[sailVerticesPerLevel*sailTackLevel-1].clone());
+            let pAboveTackWorld = sail.localToWorld(sailGeometry.vertices[sailVerticesPerLevel*(sailTackLevel+1)-1].clone());
+            let pTackBoat = boat.worldToLocal(pTackWorld.clone());
+            let pAboveTackBoat = boat.worldToLocal(pAboveTackWorld.clone());
+            let tackPositionTwistCompensationAside = 0; // (pTack.y-pAboveTack.y)*sailLevels/sailTackLevel; // x, y, z = fore , port , height
+            let tackPositionAside = pTackBoat.y;
+            //console.log("tackPositionAside: " + tackPositionAside.toFixed(2));
+            travellerParams.position = recalcTravellerPosition(tackPositionAside, tackPositionTwistCompensationAside, dirfact);
+            boat.updateWorldMatrix(false, true);
+            let mainSheetLength = Math.round(recalcMainSheet(pTackWorld));
+
+            scene.updateMatrixWorld();
+            //boat.updateWorldMatrix(true, true);
 
             dataDiv.innerHTML = "Mast rotation: " + Math.round(boatParams.mastrotation) +
                 "° <br> Mast angle of attack: " + rad2grad(mastEntryAngleRad).toFixed(1) + "°" +
@@ -810,36 +915,75 @@ function render() {
                 "<br>Mainsheet give: " + Math.round(mainSheetLength / 10 - 83) + "cm" +
                 "<br>VMG: " + boatParams.vmg.toFixed(1) + "kts" +
                 "<br>Apparent wind power: " + power.toFixed(1) + "kts average over sail" +
-                "<br>lastrot: "  +
-                "<br>deltarot: " ;
+                "<br>Girth: " + sailShape.girth.toFixed(1) + "mm" +
+                "<br>Traveller: " + Math.round(travellerParams.position * 100) + "cm" +
+                "<br>Camber: " + Math.round(sailShape.draftPositionRatio * 100) + "%" + 
+                "<br>Draft: " + Math.round(sailShape.draftDepthRatio * 100) + "%" + 
+                "<br>Force angle: " + rad2grad(sailShape.forceAngleRad).toFixed(2) + "°" +
+                "<br>Camera rotation: " + camera.rotation.x + " " + camera.rotation.y + " " + camera.rotation.z + " " +
+                "<br>Controls target: " + controls.target.x + " " + controls.target.y + " " + controls.target.z + " " +
+                "<br>Twist: " + rad2grad(sailTwist).toFixed(2) + "° (top to tack chord angle difference)" ;
+
 
             lastMastrotation = boatParams.mastrotation;
-            lastBoatHeading = boatParams.heading;
+            /*lastBoatHeading = boatParams.heading;
             lastBoatSpeed = boatParams.speed;
             lastHellman = windParams.hellman;
             lastWindSpeed = windParams.speed;
             lastMainSheetLength = mainSheetLength;
+            lastCunningham = sailParams.cunningham;*/
 
+            recalcBoatConfiguration = false;
         }
-
-
-
     }
 
     water.material.uniforms['time'].value += 1.0 / 60.0;
-
     renderer.render(scene, camera);
-
 }
 
 // returns mainsheet length in mm
-function recalcMainSheet() {
+function recalcMainSheet(tackWorldVector) {
     mainSheetGeometry.verticesNeedUpdate = true;
-    let sailTackVerticeIndex = Math.ceil(sailTackHeight / sailLevelHeight + 1) * sailVerticesPerLevel - 1;
-    let tackWorldVector = sail.localToWorld(sailGeometry.vertices[sailTackVerticeIndex].clone());
-    let tackVector = mainSheet.worldToLocal(tackWorldVector);
+    let tackVector = mainSheet.worldToLocal(tackWorldVector.clone());
     mainSheetGeometry.vertices[0].copy(tackVector);
     return mainSheetGeometry.vertices[1].distanceTo(tackVector);
+}
+
+// returns traveller position in [m] from middle
+function recalcTravellerPosition(tackPositionAside, tackPositionTwistCompensationAside, dirfact) {
+    mainSheetGeometry.verticesNeedUpdate = true;
+    let travellerPosition = tackPositionAside;
+    let travellerRotation = Math.asin(travellerPosition/4000);
+    console.log("TackPositionAside: " + tackPositionAside.toFixed(2));
+    console.log("TravellerRotation: " + travellerRotation.toFixed(2));
+    
+    travellerRotation = travellerRotation > 0 ? travellerRotation : 0.0;
+    const maxTravellerRotation = grad2rad(10);
+    travellerRotation = travellerRotation <= maxTravellerRotation ? travellerRotation : maxTravellerRotation;
+    console.log("MMTravellerRotation: " + travellerRotation.toFixed(2));
+    traveller.rotation.z = -travellerRotation;
+    boat.updateWorldMatrix(false, true);
+    let travellerWorldVector =  traveller.localToWorld(travellerCar.position.clone());
+    let travellerVector = mainSheet.worldToLocal(travellerWorldVector.clone());
+    mainSheetGeometry.vertices[1].copy(travellerVector);
+    let position = Math.abs(Math.sin(traveller.rotation.z)*4.0);
+    return position;
+}
+
+// returns traveller position in [m] from middle
+function recalcTravellerPositionRotationBased(mastRotation, tackRotation, topRotation, dirfact) {
+    mainSheetGeometry.verticesNeedUpdate = true;
+    let travellerRotation = (tackRotation + mastRotation + topRotation/3)/2; // - grad2rad(1);
+    travellerRotation = travellerRotation > 0 ? travellerRotation : 0.0;
+    const maxTravellerRotation = grad2rad(10);
+    travellerRotation = travellerRotation <= maxTravellerRotation ? travellerRotation : maxTravellerRotation;
+    //console.log(travellerRotation);
+    traveller.rotation.z = - travellerRotation * dirfact;
+    let travellerWorldVector =  traveller.localToWorld(travellerCar.position.clone());
+    let travellerVector = mainSheet.worldToLocal(travellerWorldVector);
+    mainSheetGeometry.vertices[1].copy(travellerVector);
+    let position = Math.abs(Math.sin(traveller.rotation.z)*4.0);
+    return position;
 }
 
 

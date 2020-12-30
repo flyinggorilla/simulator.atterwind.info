@@ -6,48 +6,58 @@ import {
 } from "./three.module.js";
 
 export default class SailShape {
-    tStart = 0.001;
-    tEnd = 1.001; //increase this value to move draft/camber forward
-    tInc = (this.tEnd - this.tStart) / 1000; // increment
+    // properties are available after calling 
+    draftDepth; // camber/sail depth in [mm]
+    draftDepthRatio; // Max draft as ratio vs. chord [1/1]
+    draftPosition; // Numerically calculated position of max draft vs chord [mm]
+    draftPositionRatio; // how forward the draft is positioned [1/1] - where 0.5 is middle, 0.0 beginning 1.0 end of shape
+    forceAngleRad; // Forward inclination of sail lift force [rad]
+    girth; // length of sail following the parabolic shape [mm]
+    mastAngleRad; // mast angle as part of the sail-shape [rad]
+    sag; // sag (estimated outhaul movement) [mm]
 
+    // private
     shapeRotated = []; // array of rotated sail shape points
-    phi; // calculated angle to rotate parabola "flat"
-    cosPhi; // precalc rotation factors
-    sinPhi; // precalc rotation factors
+    shapeScaled = []; // array of rotated and scaled sail shape points
 
-    shapeScaled = [];
+    // cunningham is a number 1 .. 10
+    constructor(chord, mastWidth, cunningham = 1) {
 
-    draftDepth;
-    draftPosition;
-    girth;
-    mastAngle;
+        // parabolic function fx(t): x=at^2, fy(t): y=2at
+        const parabola = (t, a = 1) => new Vector2(a * t ** 2, 2 * a * t);
+    
+        const tStart = 0.001;
+        const tEndDefault = 1.001; //increase this value to move draft/camber forward
+                    // TODO: cunningham moves draft forward ---> but this requires correction to the fullness, otherwise is girth wrong in length
+                    // tend   = 1,002 ## increase this value to move draft/camber forward ---> 45% camber, 10% draft (depth), girth 354mm
+                    // tend   = 1,500 ## increase this value to move draft/camber forward ---> 41% camber, 12% draft (depth), girth 358mm
+                    // tend   = 2,000 ## increase this value to move draft/camber forward ---> 37.5% camber, 12.5% draft (depth), girth 360mm
+        const tEnd = tEndDefault + 0.95 * (cunningham-1) / 10 ;  // tEnd from 1.001 to 1.92 based on cunningham 1 .. 10 <-- vague estimation!!
+        const fullness = 1 - 0.25 * (cunningham-1) / 10;   // 0.1 --> 0.12 --> 0.125  //TODO this formula is really vague, but doesnt 
+        const tInc = (tEnd - tStart) / 1000; // increment
 
-    // private: 
-    // parabolic function fx(t): x=at^2, fy(t): y=2at
-    parabola(t, a = 1) {
-        return new Vector2(a * t ** 2, 2 * a * t);
-    }
-
-    constructor() {
-        let p1 = this.parabola(this.tStart);
-        let p2 = this.parabola(this.tEnd);
-        this.phi = p2.sub(p1).angle(); //phi = math.atan((y2-y1)/(x2-x1))
+    
+        let p1 = parabola(tStart);
+        let p2 = parabola(tEnd);
+        const phi = p2.sub(p1).angle(); //phi = math.atan((y2-y1)/(x2-x1)) // calculated angle to rotate parabola "flat"
         //this.cosPhi = Math.cos(phi)
         //this.sinPhi = Math.sin(phi)
         //console.log("phi: " + (this.phi*180/Math.PI).toFixed(2));
 
         let p0 = new Vector2(0, 0);
-        for (let t = this.tStart; t <= this.tEnd; t += this.tInc) {
-            let p = this.parabola(t);
+        for (let t = tStart; t <= tEnd; t += tInc) {
+            let p = parabola(t);
             // move to 0
             p.sub(p1);
 
             // rotate around phi # https://en.wikipedia.org/wiki/Rotation_(mathematics)  # switch +/- for rotating clockwise
             //xrot =  x * cosPhi + y * sinPhi
             //yrot =  y * cosPhi - x * sinPhi
-            p.rotateAround(p0, -this.phi); // rotate clockwise
+            p.rotateAround(p0, -phi); // rotate clockwise
             this.shapeRotated.push(p);
         }
+
+        this.calcShape(chord, mastWidth, fullness);
     }
 
 
@@ -57,7 +67,6 @@ export default class SailShape {
     // fullness: simple depth scaling factor to flatten the sail without recalculating the parabola
     calcShape(chord, mastWidth, fullness = 1) {
         this.shapeScaled = [];
-        this.mastWidth = mastWidth;
         let scale = chord / (this.shapeRotated[this.shapeRotated.length - 1].x - this.shapeRotated[0].x);
         //console.log("scale: " + scale.toFixed(2));
 
@@ -103,19 +112,21 @@ export default class SailShape {
         this.sag = chord - this.girth;
 
         // entry & exit angle in [rad]
-        this.entryAngle = this.shapeScaled[1].clone().sub(this.shapeScaled[0]).angle(); //entryAngle = 180*math.atan((y2-y1)/(x2-x1))/math.pi
-        this.exitAngle = this.shapeScaled[this.shapeScaled.length - 1].clone().sub(this.shapeScaled[this.shapeScaled.length - 2]).angle() - Math.PI * 2;
-        //console.log("entry: " + this.entryAngle.toFixed(2) + " exit: " + this.exitAngle.toFixed(2));
-        this.mastAngle = this.getMastAngle(mastWidth);
+        this.entryAngleRad = this.shapeScaled[1].clone().sub(this.shapeScaled[0]).angle(); //entryAngle = 180*math.atan((y2-y1)/(x2-x1))/math.pi
+        this.exitAngleRad = this.shapeScaled[this.shapeScaled.length - 1].clone().sub(this.shapeScaled[this.shapeScaled.length - 2]).angle() - Math.PI * 2;
+        this.mastAngleRad = this.getMastAngle(mastWidth);
 
         // force angle Forward inclination of sail lift force
-        this.forceAngle = (this.entryAngle + this.exitAngle) / 2;
-        //console.log("forceangle: " + this.forceAngle.toFixed(2));
+        this.forceAngleRad = (this.entryAngleRad + this.exitAngleRad) / 2;
 
+        // max depth as draft vs. chord %
+        this.draftDepthRatio = this.draftDepth / chord; // depth as draft vs. chord ;
 
-
+        // max depth as draft vs. chord %
+        this.draftPositionRatio = this.draftPosition / chord; // depth as draft vs. chord ;
     }
 
+    // calculate sail-shape angle at with of mast and provide resulting mast-rotation, because mast is part of sail-shape
     getMastAngle(mastWidth) {
         let girth = 0;
         let angles = [];
@@ -133,6 +144,7 @@ export default class SailShape {
             }
             p1 = p2;
         }
+        return NaN; // can only happen if the mast width is wider than the sail shape
     }
 
 
@@ -164,35 +176,6 @@ export default class SailShape {
             console.log("Number of points mismatch! Rounding error?? " + numberOfPoints + " actual: " + angles.length);
         }
         return angles;
-    }
-
-    /*   // calculated length of flattened sail-shape
-       get girth() {
-           return this.girth;
-       }
-    
-       // entry angle of sail shape
-       get entryAngle() {
-           return this.entryAngle;
-       }
-       
-       // exit angle of sail shape
-       get exitAngle() {
-           return this.exitAngle;
-       }
-    
-       set entryAngle(a) {
-           this.entryAngle = a;
-       }*/
-
-    // depth as draft vs. chord %
-    get draftRatio() {
-        return this.draftDepth / chord; // depth as draft vs. chord %;
-    }
-
-    // calculate angle of sail at position of masttrack which is actuall luff of sail
-    mastTrackAngle(mastwidth) {
-
     }
 
     // get point at girth distance
