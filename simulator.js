@@ -25,7 +25,7 @@ function getURLParameter(sParam) {
 }
 
 let showWater = true;
-let debugHelperAxes = true;
+let debugHelperAxes = false;
 
 let container, stats;
 
@@ -58,7 +58,7 @@ const boatParams = {
     mastrotation: 0.0, // [grad]
     heading: 0.0, // [grad]
     speed: 5.0, // [kts]
-    details: true, 
+    details: false, 
     vmg: 0.0
 }
 
@@ -329,7 +329,7 @@ function init() {
     const folderBoat = gui.addFolder('Boat');
     folderBoat.add(boatParams, 'heading', boatLimits.minHeading, boatLimits.maxHeading, 1).name('heading').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
     folderBoat.add(boatParams, 'speed', 0, boatLimits.maxSpeed, 1).name('speed').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
-    folderBoat.add(boatParams, 'details').name("details"); 
+    folderBoat.add(boatParams, 'details').name("details").onChange(recalcBoatConfigurationOnNextAnimationFrame); 
     folderBoat.add(cameraParams, 'syncRotation').name("sync heading"); 
     folderBoat.open();
 
@@ -339,7 +339,13 @@ function init() {
     folderWind.open();
 
     function shareSimulatorView() {
-        window.history.pushState({}, "Attwerwind simulator position URL", buildStateUrl());    
+        let url = buildStateUrl();
+        window.history.pushState({}, "Attwerwind simulator position URL", url);    
+        let modal = document.getElementById("shareUrlPopup");
+        modal.style.display = "block";
+        let hostname = window.location.hostname != "localhost" ? "" : "https://simulator.atterwind.info";
+        let modalBody = document.getElementById("shareUrlPopupContent");
+        modalBody.innerHTML = "<a href=" + hostname + url + ">" + hostname + url + "</a>";
     }
     document.getElementById("shareLink").onclick = shareSimulatorView;
     let fActionShare = { share:function(){ 
@@ -441,47 +447,39 @@ function init() {
     const BOATSCALE = new THREE.Vector3(0.001, 0.001, 0.001);
 
     // Colored binary STL
-    loader.load('./hull.stl', function (geometry) {
+    loader.load('./hull.stl', function (hullGeometry) {
 
         let meshMaterial = boatmaterial;
 
-        if (geometry.hasColors) {
-            meshMaterial = new THREE.MeshStandardMaterial({ opacity: geometry.alpha, vertexColors: true });
+        if (hullGeometry.hasColors) {
+            meshMaterial = new THREE.MeshStandardMaterial({ opacity: hullGeometry.alpha, vertexColors: true });
         }
 
         boat = new THREE.Group();
 
-        let boatMesh = new THREE.Mesh(geometry, meshMaterial);
+        let hullMesh = new THREE.Mesh(hullGeometry, meshMaterial);
 
         // the mast-foot-pin is the 0,0,0 point of the hull geometry
-        geometry.rotateX(-Math.PI/2);
-        geometry.translate(0, 0, 0);
+        hullGeometry.rotateX(-Math.PI/2);
+        hullGeometry.translate(0, 0, 0);
         boat.scale.copy(BOATSCALE);
-        boatMesh.position.y = boatLimits.waterlineToMastFootHeight*1000; // mast foot 45cm above waterline
-        //mesh.scale.set(0.0001, 0.0001, 0.0001);
-        //boatMesh.position.set(50, -1000, 80); // fore, port, up .... in mm
-        //boat.rotation.set(- Math.PI / 2, 0, 0);
-        //boat.position.set(0, 0, 0.5);
+        hullMesh.position.y = boatLimits.waterlineToMastFootHeight*1000; // mast foot 45cm above waterline
 
         traveller = new THREE.Group();
-        let travellerGeometry = new THREE.BoxGeometry(40, 30, 20); // fore, port, up .... in m
+        let travellerGeometry = new THREE.BoxGeometry(40, 30, 20); // fore, port, up .... in mm
         let travellerMaterial = new THREE.MeshStandardMaterial({ color: 0xff3020 });        
         travellerCar = new THREE.Mesh(travellerGeometry, travellerMaterial);
         const travellerRadius = 4000; // 4m radius in CAD drawing 
         travellerCar.position.x = -travellerRadius;
-        traveller.position.set(travellerRadius-2470, boatMesh.position.y-60, 0);  // traveller is approx 6cm below mast rotation pin
+        traveller.position.set(travellerRadius-2470, hullMesh.position.y-65, 0);  // traveller is approx 6cm below mast rotation pin
         traveller.add(travellerCar);
 
 
         boat.add(traveller);
 
         if (debugHelperAxes) {
-            //const axes = new THREE.AxesHelper(1000);
-            //axes.material.depthTest = false;
-            //axes.renderOrder = 1;
-            //boat.add(axes);
             boat.add(new THREE.AxisHelper(1000));
-            boatMesh.add(new THREE.AxisHelper(1000));
+            hullMesh.add(new THREE.AxisHelper(1000));
             traveller.add(new THREE.AxisHelper(1000));
         }
 
@@ -489,21 +487,18 @@ function init() {
         boat.castShadow = true;
         boat.receiveShadow = true;
 
-        boat.add(boatMesh);
+        boat.add(hullMesh);
         scene.add(boat);
 
         // mast height 9050mm
-        loader.load('./mast.stl', function (geometry) {
+        loader.load('./mast.stl', function (mastGeometry) {
 
             let meshMaterial = boatmaterial;
-
-            if (geometry.hasColors) {
-
-                meshMaterial = new THREE.MeshStandardMaterial({ opacity: geometry.alpha, vertexColors: true });
-
+            if (mastGeometry.hasColors) {
+                meshMaterial = new THREE.MeshStandardMaterial({ opacity: mastGeometry.alpha, vertexColors: true });
             }
 
-            mast = new THREE.Mesh(geometry, meshMaterial);
+            mast = new THREE.Mesh(mastGeometry, meshMaterial);
 
             //mast.position.set(-600, 55, +9460); // fore, port, up ... [mm]
             //geometry.rotateX(-Math.PI/2);
@@ -519,21 +514,15 @@ function init() {
             mast.add(rigSail());
             boat.add(mast);
 
-
             const mainSheetMaterial = new THREE.LineBasicMaterial({ color: 0x8f0f0f });
             const points = [];
             points.push(new THREE.Vector3(0, 0, 0));
             points.push(new THREE.Vector3(0, 0, 0));
-            //points.push(new THREE.Vector3(-2430, 60, 410)); // for, port, up ... in mm
-
             mainSheetGeometry = new THREE.Geometry().setFromPoints(points);
             mainSheet = new THREE.Line(mainSheetGeometry, mainSheetMaterial);
 
             boat.add(mainSheet);
         });
-
-
-
     });
 
     // Lights
@@ -556,24 +545,20 @@ function init() {
 }
 
 const sailHeight = 9065; // mm
-const sailLevelHeight = 100; // mm
+const sailLevelHeight = 50; // mm
 const sailVerticesPerLevel = Math.floor(1000 / sailLevelHeight);
 const sailLevels = Math.ceil(sailHeight / sailLevelHeight);
 const sailTackHeight = 900; // mm
 const sailTackMastDistance = 2125; // mm
 const sailMastWidth = 140; // mm
+const sailDecksweeperWidth = 900; // mm distance from mast
+const sailTopMastDistance = 390; // mm distance of sail leech at mast top
+const sailLeechCurvature = 200; //mm how curved the leech is vs. a straight line
 let sail, sailGeometry, sailClipWidthPerLevel;
 let mainSheet, mainSheetGeometry;
-let travellerVector = new THREE.Vector3();
 
 function rigSail() {
     const tackMastDistance = sailTackMastDistance;
-    const decksweeper = 900; // mm distance from mast
-    const topMastDistance = 390; // mm distance of sail leech at mast top
-    const leechCurvature = 200; //mm how curved the leech is vs. a straight line
-
-    //let luffAxis = new THREE.Vector3(0, 1, 0);
-
 
     sail = new THREE.Group();
     sailGeometry = new THREE.Geometry();
@@ -592,11 +577,11 @@ function rigSail() {
         let clipOffWidth;
         if (height < sailTackHeight) {
             sailWidth = tackMastDistance;
-            clipOffWidth = decksweeper + (tackMastDistance - decksweeper) * height / sailTackHeight;
+            clipOffWidth = sailDecksweeperWidth + (tackMastDistance - sailDecksweeperWidth) * height / sailTackHeight;
             //override
         } else {
-            sailWidth = tackMastDistance - (tackMastDistance - topMastDistance) * (height - sailTackHeight) / (sailHeight - sailTackHeight);
-            sailWidth += Math.sin((height - sailTackHeight) / (sailHeight - sailTackHeight) * Math.PI) * leechCurvature;
+            sailWidth = tackMastDistance - (tackMastDistance - sailTopMastDistance) * (height - sailTackHeight) / (sailHeight - sailTackHeight);
+            sailWidth += Math.sin((height - sailTackHeight) / (sailHeight - sailTackHeight) * Math.PI) * sailLeechCurvature;
             clipOffWidth = sailWidth;
         }
 
@@ -630,9 +615,10 @@ function rigSail() {
 
     }
 
-    //let v0 = sailgeometry.vertices[0].clone();
-    //let vrot = v0.sub(sailgeometry.vertices[2]).normalize();
-    //sailgeometry.vertices[1].applyAxisAngle(luffAxis, Math.PI / 4);
+    const sailStripeInterval = Math.floor(sailLevels / 10);
+    const colorRedStripe = new THREE.Color(0.8, 0.2, 0.2);
+    const colorDarkGrey = new THREE.Color(0.25, 0.25, 0.25);
+    const colorDarkGreyLight = new THREE.Color(0.28, 0.28, 0.28);
 
     for (let level = 0; level < sailLevels; level++) {
         //for (let level = 0; level <= 2; level++) {
@@ -640,12 +626,12 @@ function rigSail() {
             let i = level * sailVerticesPerLevel + v;
             let f1 = new THREE.Face3(i - 1, i, i + sailVerticesPerLevel - 1);
             let f2 = new THREE.Face3(i, i + sailVerticesPerLevel, i + sailVerticesPerLevel - 1);
-            if (level % 10) {
-                f1.color = new THREE.Color(0.7, 0.5, 0.5);
-                f2.color = new THREE.Color(0.5, 0.5, 0.7);
-            } else {
-                f1.color = new THREE.Color(0.8, 0.2, 0.2);
-                f2.color = new THREE.Color(0.8, 0.2, 0.2);
+            if (level % sailStripeInterval) { 
+                f1.color = colorDarkGrey;
+                f2.color = colorDarkGreyLight;
+            } else {  // red stripes
+                f1.color = colorRedStripe;
+                f2.color = colorRedStripe;
             }
             sailGeometry.faces.push(f1, f2);
 
@@ -664,9 +650,7 @@ function rigSail() {
     let sailmaterial = new THREE.MeshBasicMaterial({ vertexColors: THREE.FaceColors, side: THREE.DoubleSide, opacity: 0.7, transparent: true });
     let sailmesh = new THREE.Mesh(sailGeometry, sailmaterial);
     sail.rotation.set(0, Math.PI, 0);
-    //sail.position.set(-130, 9040, 0)
     sail.add(sailmesh);
-    //mast.add(sail);
     return sail;
 
 
@@ -707,29 +691,19 @@ function addShadowedLight(x, y, z, color, intensity) {
 
 
 function onWindowResize() {
-
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-
     renderer.setSize(window.innerWidth, window.innerHeight);
-
 }
 
 function animate() {
-
     requestAnimationFrame(animate);
-
-    //controls.update();
     render();
-    //renderer.render(scene, camera);
-
     stats.update();
-
 }
 
 function recalcBoatConfigurationOnNextAnimationFrame() {
     recalcBoatConfiguration = true;
-    //console.log("recalc");
 }
 
 function rad2grad(rad) {
@@ -760,13 +734,6 @@ function render() {
             boat.rotation.z = Math.cos(time) * 0.01 - Math.sin(time) * 0.02 - boatHeadingRad;
         } 
         
-        //mast.rotation.y = boatParams.mastrotation * Math.PI / 180.0;
-        //if (boatParams.mastrotation != lastMastrotation) {
-        // TODO : leverage update() functions to set a "dirty" flag instead of this list of comparisons
-        /*if ((windParams.speed != lastWindSpeed) || (windParams.hellman != lastHellman) ||
-            (boatParams.heading != lastBoatHeading) || (boatParams.speed != lastBoatSpeed) ||
-            (lastMainSheetLength != mainSheetLength) || (sailParams.cunningham != lastCunningham)) { */
-
         if (recalcBoatConfiguration) {
 
             let boatHeadingRad = grad2rad(boatParams.heading);
@@ -818,12 +785,12 @@ function render() {
 
             let chordAngleOfAttackRad = grad2rad(20); // optimal angle of attack for 10% camber; http://www.onemetre.net/design/Entry/entry.htm
             const maxMastRotationRad = Math.PI / 2;
-            const maxChordRotationPerSailLevelRad = Math.PI/2 / sailLevels;
+            const maxChordRotationPerSailLevelRad = Math.PI/3*2 / sailLevels; // empirical limit
 
             let absAwaRad = Math.abs(aw.awa);
             let mastEntryAngleRad = sailShape.mastAngleRad; //sailShape.getMastAngle(sailMastWidth);
-            if (absAwaRad < 0.01) {  //TODO################
-                 chordAngleOfAttackRad = 0;
+            if (absAwaRad < 0.01) {  
+                chordAngleOfAttackRad = 0;
                 mastEntryAngleRad = 0;
             } 
             //console.log("absawa: " + absAwa + " mastangleofattack: " + mastEntryAngle);
@@ -862,14 +829,11 @@ function render() {
                 }
                 lastChordRotationRad = chordRotationRad;
 
-                if (aw.aws > 25) {
+                if (aw.aws > 25) { // TODO =================== lift calculation
                     power += aw.aws; // sum up all wind speeds
                 }
 
                 let clipWidth = sailClipWidthPerLevel[level]; // null, if level is at or above tack
-                /*if (clipWidth) {
-                    console.log("zero vertice level: " + level + " clipWidth: " + clipWidth.toFixed(2));
-                }*/
                 let verticeAnglesRad = sailShape.getVerticesAngles(sailVerticesPerLevel, sailMastWidth, clipWidth);
 
                 // apply rotation to the sail-points according to the parabolic sailshape
@@ -894,7 +858,6 @@ function render() {
 
             recalcWindField(windParams.speed, windParams.hellman);
             recalcApparentWindField(windParams.speed, boatParams.speed, boatHeadingRad, windParams.hellman);
-            //travellerParams.position = recalcTravellerPosition(mastRotationRad, tackChordRotationRad, topChordRotationRad, dirfact);
             boatParams.vmg = Math.abs(boatParams.speed * Math.cos(boatHeadingRad));
             boatParams.mastrotation = rad2grad(mastRotationRad)*dirfact;
 
@@ -919,33 +882,38 @@ function render() {
             scene.updateMatrixWorld();
             //boat.updateWorldMatrix(true, true);
 
-            dataDiv.innerHTML = "Mast rotation: " + Math.round(boatParams.mastrotation) +
-                "° <br> Mast angle of attack: " + rad2grad(mastEntryAngleRad).toFixed(1) + "°" +
-                "<br>Apparent wind speed: " + Math.round(aw.aws) + "kts" +
-                "<br>Apparent wind angle: " + Math.round(rad2grad(absAwaRad)) + "°" +
-                "<br>Sail area: " + (sailParams.mastArea + sailParams.sailArea).toFixed(2) + "m² (mast: " + sailParams.mastArea.toFixed(2) + "m², sail: " + sailParams.sailArea.toFixed(2) + "m²)" + //&sup2;
-                "<br>Mast foot over water: " + (mastFootOverWaterHeight / 1000).toFixed(1) + "m" +
-                "<br>Mainsheet give: " + Math.round(mainSheetLength / 10 - 83) + "cm" +
-                "<br>VMG: " + boatParams.vmg.toFixed(1) + "kts" +
-                "<br>Apparent wind power: " + power.toFixed(1) + "kts average over sail" +
-                "<br>Girth: " + sailShape.girth.toFixed(1) + "mm" +
+            let infoStandardHtml = 
+                "Sail Twist: " + rad2grad(sailTwist).toFixed(2) + "° (top to tack chord angle difference)" +
+                "<br>Apparent wind speed: " + Math.round(aw.aws) + "kts (at mast-top)" +
+                "<br>Apparent wind angle: " + Math.round(rad2grad(absAwaRad)) + "° (at mast-top)" +
+                "<br>Mast rotation: " + Math.round(Math.abs(boatParams.mastrotation)) + "°" +
                 "<br>Traveller: " + Math.round(travellerParams.position / 10) + "cm" +
-                "<br>Camber: " + Math.round(sailShape.draftPositionRatio * 100) + "%" + 
-                "<br>Draft: " + Math.round(sailShape.draftDepthRatio * 100) + "%" + 
-                "<br>Force angle: " + rad2grad(sailShape.forceAngleRad).toFixed(2) + "°" +
-                "<br>Camera rotation: " + camera.rotation.x + " " + camera.rotation.y + " " + camera.rotation.z + " " +
-                "<br>Controls target: " + controls.target.x + " " + controls.target.y + " " + controls.target.z + " " +
-                "<br>Twist: " + rad2grad(sailTwist).toFixed(2) + "° (top to tack chord angle difference)" ;
+                "<br>Mainsheet give: " + Math.round(mainSheetLength / 10 - 86) + "cm" +   // TODO 86cm <--- somehow calculate the mainsheet fully tight length
+                "<br>VMG: " + boatParams.vmg.toFixed(1) + "kts (approximate, ignores sideways drift)";
 
+            let infoDetailHtml = "";
+            if (boatParams.details) {
+                infoDetailHtml = 
+                    "<br>Mast angle of attack: " + rad2grad(mastEntryAngleRad).toFixed(1) + "°" +
+                    "<br>Sail area: " + (sailParams.mastArea + sailParams.sailArea).toFixed(2) + "m² (mast: " + sailParams.mastArea.toFixed(2) + "m², sail: " + sailParams.sailArea.toFixed(2) + "m²)" + //&sup2;
+                    "<br>Mast foot over water: " + (mastFootOverWaterHeight / 1000).toFixed(1) + "m" +
+                    "<br>Apparent wind power: " + power.toFixed(1) + "kts average over sail" +
+                    "<br>Girth: " + sailShape.girth.toFixed(1) + "mm" +
+                    "<br>Camber: " + Math.round(sailShape.draftPositionRatio * 100) + "%" + 
+                    "<br>Draft: " + Math.round(sailShape.draftDepthRatio * 100) + "%" + 
+                    "<br>Force angle: " + rad2grad(sailShape.forceAngleRad).toFixed(2) + "°";
+            }
+
+            let infoDebugHtml = "";
+            if (debugHelperAxes) {
+                infoDebugHtml = 
+                    "<br>Camera rotation: " + camera.rotation.x + " " + camera.rotation.y + " " + camera.rotation.z + " " +
+                    "<br>Controls target: " + controls.target.x + " " + controls.target.y + " " + controls.target.z + " ";
+            }
+            
+            dataDiv.innerHTML = infoStandardHtml + infoDetailHtml + infoDebugHtml;
 
             lastMastrotation = boatParams.mastrotation;
-            /*lastBoatHeading = boatParams.heading;
-            lastBoatSpeed = boatParams.speed;
-            lastHellman = windParams.hellman;
-            lastWindSpeed = windParams.speed;
-            lastMainSheetLength = mainSheetLength;
-            lastCunningham = sailParams.cunningham;*/
-
             recalcBoatConfiguration = false;
         }
     }
@@ -982,29 +950,6 @@ function recalcTravellerPosition(tackPositionAside, tackPositionTwistCompensatio
     return travellerPositionAbs;
 }
 
-// returns traveller position in [m] from middle
-function recalcTravellerPositionRotationBased(mastRotation, tackRotation, topRotation, dirfact) {
-    mainSheetGeometry.verticesNeedUpdate = true;
-    let travellerRotation = (tackRotation + mastRotation + topRotation/3)/2; // - grad2rad(1);
-    travellerRotation = travellerRotation > 0 ? travellerRotation : 0.0;
-    const maxTravellerRotation = grad2rad(10);
-    travellerRotation = travellerRotation <= maxTravellerRotation ? travellerRotation : maxTravellerRotation;
-    //console.log(travellerRotation);
-    traveller.rotation.z = - travellerRotation * dirfact;
-    let travellerWorldVector =  traveller.localToWorld(travellerCar.position.clone());
-    let travellerVector = mainSheet.worldToLocal(travellerWorldVector);
-    mainSheetGeometry.vertices[1].copy(travellerVector);
-    let position = Math.abs(Math.sin(traveller.rotation.z)*4.0);
-    return position;
-}
-
-
-/* 
-    function recalcSailShape(windspeed, sog, cog) {
-    let tws = Wind.windSheer(windspeed, height);
-    let aw = Wind.apparentWind(sog, cog, tws, 0);
-} */
-
 function recalcApparentWindField(windspeed, sog, cog, hellman) {
     for (let height = 0; height < 11; height += 0.5) {
         let tws = Wind.windSheer(windspeed, height, hellman);
@@ -1040,11 +985,13 @@ function setupKeyControls() {
                 if (boatParams.speed < 30) {
                     boatParams.speed += 1;
                 }
+                recalcBoatConfigurationOnNextAnimationFrame();
                 break;
             case "ArrowDown" : 
                 if (boatParams.speed > 0) {
                     boatParams.speed -= 1;
                 }
+                recalcBoatConfigurationOnNextAnimationFrame();
                 break;
             case "ArrowLeft" : 
                 if (boatParams.heading > -180) {
@@ -1052,6 +999,7 @@ function setupKeyControls() {
                 } else {
                     boatParams.heading = 180;
                 }
+                recalcBoatConfigurationOnNextAnimationFrame();
                 break;
             case "ArrowRight" : 
                 if (boatParams.heading < 180) {
@@ -1059,6 +1007,7 @@ function setupKeyControls() {
                 } else {
                     boatParams.heading = -180;
                 }
+                recalcBoatConfigurationOnNextAnimationFrame();
                 break;
             }
     });
