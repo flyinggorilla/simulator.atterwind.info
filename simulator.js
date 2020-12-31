@@ -176,6 +176,12 @@ function getUrlParameters() {
     {
         cameraParams.targetHeight = cameraTargetHeight; 
     }
+    let cameraSyncHeading = parseInt(getURLParameter("csh"));
+    if (cameraSyncHeading == 1) {
+        cameraParams.syncRotation = true;
+    } else {
+        cameraParams.syncRotation = false;
+    }
 
 
 }
@@ -318,7 +324,8 @@ function init() {
         return "?bh=" + boatParams.heading + "&bs=" + boatParams.speed + "&ws=" + windParams.speed + "&wh=" + windParams.hellman
             + "&ch=" + camera.position.y.toFixed(1) + "&cs=" + camera.position.z.toFixed(1) + "&cl=" + camera.position.x.toFixed(1)
             + "&cry=" + rad2grad(camera.rotation.y).toFixed(1) + "&crz=" + rad2grad(camera.rotation.z).toFixed(1) + "&crx=" + rad2grad(camera.rotation.x).toFixed(1)
-            + "&cth=" + controls.target.y.toFixed(1) + "&cts=" + controls.target.z.toFixed(1) + "&ctl=" + controls.target.x.toFixed(1);
+            + "&cth=" + controls.target.y.toFixed(1) + "&cts=" + controls.target.z.toFixed(1) + "&ctl=" + controls.target.x.toFixed(1)
+            + "&csh=" + (cameraParams.syncRotation ? "1" : "0");
     }
 
     const folderBoat = gui.addFolder('Boat');
@@ -456,7 +463,7 @@ function init() {
 
         traveller = new THREE.Group();
         let travellerGeometry = new THREE.BoxGeometry(40, 30, 20); // fore, port, up .... in m
-        let travellerMaterial = new THREE.MeshStandardMaterial({ color: 0xFF0000 });        
+        let travellerMaterial = new THREE.MeshStandardMaterial({ color: 0xff3020 });        
         travellerCar = new THREE.Mesh(travellerGeometry, travellerMaterial);
         const travellerRadius = 4.0; // 4m radius in CAD drawing 
         travellerCar.position.x = -travellerRadius*1000;
@@ -737,6 +744,7 @@ let lastMastrotation = 0;
 let lastCunningham = null;
 let flatSailgeometry = null;
 let sailShape = null;
+let firstTimeRotationSync = true;
 function render() {
 
     const time = performance.now() * 0.0025;
@@ -767,6 +775,10 @@ function render() {
             if (boat.rotation.z != boatHeadingRad) {
                 recalcBoatConfiguration = true;
                 let deltarot = boatHeadingRad + boat.rotation.z;
+                if (firstTimeRotationSync) {
+                    deltarot = 0;
+                    firstTimeRotationSync = false;
+                }
                 boat.rotation.z = -boatHeadingRad;
                 if (cameraParams.syncRotation) {
                     //let cpos = camera.position.clone();
@@ -896,8 +908,8 @@ function render() {
             let pAboveTackWorld = sail.localToWorld(sailGeometry.vertices[sailVerticesPerLevel*(sailTackLevel+1)-1].clone());
             let pTackBoat = boat.worldToLocal(pTackWorld.clone());
             let pAboveTackBoat = boat.worldToLocal(pAboveTackWorld.clone());
-            let tackPositionTwistCompensationAside = 0; // (pTack.y-pAboveTack.y)*sailLevels/sailTackLevel; // x, y, z = fore , port , height
-            let tackPositionAside = pTackBoat.y;
+            let tackPositionTwistCompensationAside = (pTackBoat.y-pAboveTackBoat.y)*sailLevels/sailTackLevel; // x, y, z = fore , port , height
+            let tackPositionAside = pTackBoat.y -55; // TODO eliminate the -55 once boat/mast is positioned in the MIDDLE at 0
             //console.log("tackPositionAside: " + tackPositionAside.toFixed(2));
             travellerParams.position = recalcTravellerPosition(tackPositionAside, tackPositionTwistCompensationAside, dirfact);
             boat.updateWorldMatrix(false, true);
@@ -916,7 +928,7 @@ function render() {
                 "<br>VMG: " + boatParams.vmg.toFixed(1) + "kts" +
                 "<br>Apparent wind power: " + power.toFixed(1) + "kts average over sail" +
                 "<br>Girth: " + sailShape.girth.toFixed(1) + "mm" +
-                "<br>Traveller: " + Math.round(travellerParams.position * 100) + "cm" +
+                "<br>Traveller: " + Math.round(travellerParams.position / 10) + "cm" +
                 "<br>Camber: " + Math.round(sailShape.draftPositionRatio * 100) + "%" + 
                 "<br>Draft: " + Math.round(sailShape.draftDepthRatio * 100) + "%" + 
                 "<br>Force angle: " + rad2grad(sailShape.forceAngleRad).toFixed(2) + "°" +
@@ -952,22 +964,21 @@ function recalcMainSheet(tackWorldVector) {
 // returns traveller position in [m] from middle
 function recalcTravellerPosition(tackPositionAside, tackPositionTwistCompensationAside, dirfact) {
     mainSheetGeometry.verticesNeedUpdate = true;
-    let travellerPosition = tackPositionAside;
-    let travellerRotation = Math.asin(travellerPosition/4000);
-    console.log("TackPositionAside: " + tackPositionAside.toFixed(2));
-    console.log("TravellerRotation: " + travellerRotation.toFixed(2));
-    
-    travellerRotation = travellerRotation > 0 ? travellerRotation : 0.0;
-    const maxTravellerRotation = grad2rad(10);
-    travellerRotation = travellerRotation <= maxTravellerRotation ? travellerRotation : maxTravellerRotation;
-    console.log("MMTravellerRotation: " + travellerRotation.toFixed(2));
-    traveller.rotation.z = -travellerRotation;
+    let travellerPosition = Math.abs(tackPositionAside) - Math.abs(tackPositionTwistCompensationAside);
+    let travellerPositionAbs = travellerPosition < 0.0 ? 0.0 : travellerPosition;
+    let travellerRotationAbs = Math.asin(travellerPositionAbs/4000.0);
+    //console.log("TravellerPosition: " + travellerPositionAbs.toFixed(2));
+    //console.log("TravellerRotation: " + travellerRotationAbs.toFixed(2));
+    //console.log("TravellerCompensation: " + tackPositionTwistCompensationAside.toFixed(2));
+   
+    const maxTravellerRotationAbs = grad2rad(10);
+    travellerRotationAbs = travellerRotationAbs > maxTravellerRotationAbs ? maxTravellerRotationAbs : travellerRotationAbs;
+    traveller.rotation.z = - travellerRotationAbs * dirfact;
     boat.updateWorldMatrix(false, true);
     let travellerWorldVector =  traveller.localToWorld(travellerCar.position.clone());
     let travellerVector = mainSheet.worldToLocal(travellerWorldVector.clone());
     mainSheetGeometry.vertices[1].copy(travellerVector);
-    let position = Math.abs(Math.sin(traveller.rotation.z)*4.0);
-    return position;
+    return travellerPositionAbs;
 }
 
 // returns traveller position in [m] from middle

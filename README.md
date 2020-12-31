@@ -22,7 +22,7 @@ TODO: explain sail-twist
     * show 3 pics of wind-sheer in the various conditions -- incl. hellman constants stable/ 
     * all calculations based on constant (set) windspeed --- rocking of boat is ignored (i.e. apparent wind direction can change a lot in the mast-top, hence you sail with more twist to be more tolerant of apparent wind direction changes)
     http://localhost:3001/?boat.heading=135&boat.speed=30&wind.speed=30&wind.hellman=0.27&camera.height=6.0&camera.aside=-8.7&camera.along=-0.3
-    
+
 * sail
     * assumed ideal angle of attack of sail-chord to apparent wind of 20degrees for maximum sail lift.
     * parabolic sail shape - defaults to 45% chord position and 10% camber [todo picture cord, camber, apparent wind, ...]
@@ -56,6 +56,13 @@ Mast rotation	3	2	1.5	1	4	2 (3)	2.5 (3)	3 (3)
 Cunningham	mid	light	mid	pull	mid	loose	mid	pull
 Traveller	0	0	0	0.5 to 1	max	1	2	3
 
+## URL parameters
+
+        return "?bh=" + boatParams.heading + "&bs=" + boatParams.speed + "&ws=" + windParams.speed + "&wh=" + windParams.hellman
+            + "&ch=" + camera.position.y.toFixed(1) + "&cs=" + camera.position.z.toFixed(1) + "&cl=" + camera.position.x.toFixed(1)
+            + "&cry=" + rad2grad(camera.rotation.y).toFixed(1) + "&crz=" + rad2grad(camera.rotation.z).toFixed(1) + "&crx=" + rad2grad(camera.rotation.x).toFixed(1)
+            + "&cth=" + controls.target.y.toFixed(1) + "&cts=" + controls.target.z.toFixed(1) + "&ctl=" + controls.target.x.toFixed(1)
+            + "&csh=" + cameraParams.syncRotation ? "1" : "0";
 
 ## Todo List
 DONE:
