@@ -41,10 +41,10 @@ let apparentwindfield = [];
 let loadingComplete = false;
 
 const boatLimits = {
-    maxSpeed: 35, // [kts]
+    maxSpeed: 35, // [kn]
     minHeading: -180, // [grad]
     maxHeading: 180,   // [grad]
-    minFoilingSpeed: 13,  // [kts]
+    minFoilingSpeed: 13,  // [kn]
     foilingBoatLift: 0.52,  // [m] (approx)
     waterlineToMastFootHeight: 0.45 // [m]  (approx)
 }
@@ -57,7 +57,7 @@ const windLimits = {
 const boatParams = {
     mastrotation: 0.0, // [grad]
     heading: 0.0, // [grad]
-    speed: 5.0, // [kts]
+    speed: 5.0, // [kn]
     details: false, 
     vmg: 0.0
 }
@@ -70,7 +70,7 @@ const travellerParams = {
 
 const windConditions = { unstable: 0.06, neutral: 0.10, stable: 0.27 };    
 const windParams = {
-    speed: 5.0, // [kts]
+    speed: 5.0, // [kn]
     hellman: 0.27
 }
 
@@ -84,15 +84,18 @@ const cameraDefaults = {
     height: 10, // [m]
     aside: 8, // [m]
     along: 8, // [m]
+    targetAlong: 0, // x
+    targetHeight: 5,  // y
+    targetAside: 0, // z
 }
 
 const cameraParams = {
     height: cameraDefaults.height, // [m]
     aside: cameraDefaults.aside, // [m]
     along: cameraDefaults.along, // [m]
-    targetAlong: 0, // x
-    targetHeight: 5,  // y
-    targetAside: 0, // z
+    targetAlong: cameraDefaults.targetAlong, // x
+    targetHeight: cameraDefaults.targetHeight,  // y
+    targetAside: cameraDefaults.targetAside, // z
     rotationX: 0, // [grad]
     rotationY: 0, // [grad]
     rotationZ: 0, // [grad]
@@ -327,14 +330,12 @@ function init() {
     }
 
     const folderBoat = gui.addFolder('Boat');
-    folderBoat.add(boatParams, 'heading', boatLimits.minHeading, boatLimits.maxHeading, 1).name('heading').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
-    folderBoat.add(boatParams, 'speed', 0, boatLimits.maxSpeed, 1).name('speed').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
-    folderBoat.add(boatParams, 'details').name("details").onChange(recalcBoatConfigurationOnNextAnimationFrame); 
-    folderBoat.add(cameraParams, 'syncRotation').name("sync heading"); 
+    folderBoat.add(boatParams, 'heading', boatLimits.minHeading, boatLimits.maxHeading, 1).name('heading [°]').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
+    folderBoat.add(boatParams, 'speed', 0, boatLimits.maxSpeed, 1).name('speed  [kn]').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
     folderBoat.open();
 
     const folderWind = gui.addFolder('Wind');
-    folderWind.add(windParams, 'speed', 0, windLimits.maxSpeed, 1).name('speed').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
+    folderWind.add(windParams, 'speed', 0, windLimits.maxSpeed, 1).name('speed [kn]').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
     folderWind.add(windParams, 'hellman', windConditions).name('condition').onChange(recalcBoatConfigurationOnNextAnimationFrame);
     folderWind.open();
 
@@ -343,38 +344,45 @@ function init() {
         window.history.pushState({}, "Attwerwind simulator position URL", url);    
         let modal = document.getElementById("shareUrlPopup");
         modal.style.display = "block";
-        let hostname = window.location.hostname != "localhost" ? "" : "https://simulator.atterwind.info";
+        let hostname = window.location.hostname == "localhost" ? "" : "https://simulator.atterwind.info";
         let modalBody = document.getElementById("shareUrlPopupContent");
         modalBody.innerHTML = "<a href=" + hostname + url + ">" + hostname + url + "</a>";
     }
     document.getElementById("shareLink").onclick = shareSimulatorView;
-    let fActionShare = { share:function(){ 
+    let fViewShare = { share:function(){ 
                             shareSimulatorView();
                         }};
-    const folderAdvanced = gui.addFolder("Experimental");
-    folderAdvanced.add(sailParams, 'cunningham', 1, 10, 1).name('cunningham').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
 
-    const folderPresets = gui.addFolder("Presets");
-    let fActionDownwindFoiling = { downfoil:function(){ boatParams.heading = 135; boatParams.speed = 22; windParams.speed = 15; recalcBoatConfigurationOnNextAnimationFrame();  }};
-    folderPresets.add(fActionDownwindFoiling,'downfoil').name('downwind foiling');
-    let fActionUpwindFoiling = { upfoil:function(){ boatParams.heading = 50; boatParams.speed = 17; windParams.speed = 15; recalcBoatConfigurationOnNextAnimationFrame();  }};
-    folderPresets.add(fActionUpwindFoiling,'upfoil').name('upwind foiling');
-    let fActionUpwindFlying = { upfly:function(){ boatParams.heading = 47; boatParams.speed = 9; windParams.speed = 10; recalcBoatConfigurationOnNextAnimationFrame();  }};
-    folderPresets.add(fActionUpwindFlying,'upfly').name('upwind');
-    let fActionDownwindLight = { downlight:function(){ boatParams.heading = 135; boatParams.speed = 5; windParams.speed = 5; recalcBoatConfigurationOnNextAnimationFrame();  }};
-    folderPresets.add(fActionDownwindLight,'downlight').name('downwind light');
-    let fActionUpwindLight = { uplight:function(){ boatParams.heading = 48; boatParams.speed = 3; windParams.speed = 5; recalcBoatConfigurationOnNextAnimationFrame(); }};
-    folderPresets.add(fActionUpwindLight,'uplight').name('upwind light');
-    let fActionCameraReset = { camera:function(){ 
+    const folderView = gui.addFolder("View");
+    folderView.add(cameraParams, 'syncRotation').name("sync with heading"); 
+    folderView.add(boatParams, 'details').name("show trim details").onChange(recalcBoatConfigurationOnNextAnimationFrame); 
+    folderView.add(fViewShare,'share').name('share current view');
+    let fViewDownwindFoiling = { downfoil:function(){ boatParams.heading = 135; boatParams.speed = 22; windParams.speed = 15; recalcBoatConfigurationOnNextAnimationFrame();  }};
+    folderView.add(fViewDownwindFoiling,'downfoil').name('downwind foiling');
+    let fViewUpwindFoiling = { upfoil:function(){ boatParams.heading = 50; boatParams.speed = 17; windParams.speed = 15; recalcBoatConfigurationOnNextAnimationFrame();  }};
+    folderView.add(fViewUpwindFoiling,'upfoil').name('upwind foiling');
+    let fViewUpwindFlying = { upfly:function(){ boatParams.heading = 47; boatParams.speed = 9; windParams.speed = 10; recalcBoatConfigurationOnNextAnimationFrame();  }};
+    folderView.add(fViewUpwindFlying,'upfly').name('upwind');
+    let fViewDownwindLight = { downlight:function(){ boatParams.heading = 135; boatParams.speed = 5; windParams.speed = 5; recalcBoatConfigurationOnNextAnimationFrame();  }};
+    folderView.add(fViewDownwindLight,'downlight').name('downwind light');
+    let fViewUpwindLight = { uplight:function(){ boatParams.heading = 48; boatParams.speed = 3; windParams.speed = 5; recalcBoatConfigurationOnNextAnimationFrame(); }};
+    folderView.add(fViewUpwindLight,'uplight').name('upwind light');
+    let fViewCameraReset = { camera:function(){ 
         cameraParams.height = cameraDefaults.height; cameraParams.along = cameraDefaults.along; cameraParams.aside = cameraDefaults.aside;     
         camera.position.set(cameraParams.along, cameraParams.height, cameraParams.aside);
+        cameraParams.rotationX = cameraParams.rotationY = cameraParams.rotationZ = 0;
+        camera.rotation.set(grad2rad(cameraParams.rotationX), grad2rad(cameraParams.rotationY), grad2rad(cameraParams.rotationZ));
+        cameraParams.targetAlong = cameraDefaults.targetAlong; cameraParams.targetHeight = cameraDefaults.targetHeight;
+        cameraParams.targetAside = cameraDefaults.targetAside;
+        controls.target.set(cameraParams.targetAlong, cameraParams.targetHeight, cameraParams.targetAside);
         controls.update();
         recalcBoatConfigurationOnNextAnimationFrame();
         // TODO NOT PERFECT YET
     }};
-    folderPresets.add(fActionCameraReset,'camera').name('reset camera');
-    folderPresets.add(fActionShare,'share').name('share view');
+    folderView.add(fViewCameraReset,'camera').name('reset camera');
 
+    const folderAdvanced = gui.addFolder("Experimental");
+    folderAdvanced.add(sailParams, 'cunningham', 1, 10, 1).name('cunningham').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
 
 
 
@@ -744,7 +752,7 @@ function render() {
 
             if (boat.rotation.y != boatHeadingRad) {
                 recalcBoatConfiguration = true;
-                let deltarot = boatHeadingRad + boat.rotation.z;
+                let deltarot = boatHeadingRad + boat.rotation.y;
                 if (firstTimeRotationSync) {
                     deltarot = 0;
                     firstTimeRotationSync = false;
@@ -884,12 +892,12 @@ function render() {
 
             let infoStandardHtml = 
                 "Sail Twist: " + rad2grad(sailTwist).toFixed(2) + "° (top to tack chord angle difference)" +
-                "<br>Apparent wind speed: " + Math.round(aw.aws) + "kts (at mast-top)" +
+                "<br>Apparent wind speed: " + Math.round(aw.aws) + "kn (at mast-top)" +
                 "<br>Apparent wind angle: " + Math.round(rad2grad(absAwaRad)) + "° (at mast-top)" +
                 "<br>Mast rotation: " + Math.round(Math.abs(boatParams.mastrotation)) + "°" +
                 "<br>Traveller: " + Math.round(travellerParams.position / 10) + "cm" +
                 "<br>Mainsheet give: " + Math.round(mainSheetLength / 10 - 86) + "cm" +   // TODO 86cm <--- somehow calculate the mainsheet fully tight length
-                "<br>VMG: " + boatParams.vmg.toFixed(1) + "kts (approximate, ignores sideways drift)";
+                "<br>VMG: " + boatParams.vmg.toFixed(1) + "kn (approximate, ignores sideways drift)";
 
             let infoDetailHtml = "";
             if (boatParams.details) {
@@ -897,7 +905,7 @@ function render() {
                     "<br>Mast angle of attack: " + rad2grad(mastEntryAngleRad).toFixed(1) + "°" +
                     "<br>Sail area: " + (sailParams.mastArea + sailParams.sailArea).toFixed(2) + "m² (mast: " + sailParams.mastArea.toFixed(2) + "m², sail: " + sailParams.sailArea.toFixed(2) + "m²)" + //&sup2;
                     "<br>Mast foot over water: " + (mastFootOverWaterHeight / 1000).toFixed(1) + "m" +
-                    "<br>Apparent wind power: " + power.toFixed(1) + "kts average over sail" +
+                    "<br>Apparent wind power: " + power.toFixed(1) + "kn average over sail" +
                     "<br>Girth: " + sailShape.girth.toFixed(1) + "mm" +
                     "<br>Camber: " + Math.round(sailShape.draftPositionRatio * 100) + "%" + 
                     "<br>Draft: " + Math.round(sailShape.draftDepthRatio * 100) + "%" + 

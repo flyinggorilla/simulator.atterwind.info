@@ -30,6 +30,8 @@ TODO: explain sail-twist
 
 * cunningham
     * changes parabolic sail shape --- looks good, but "angle of force" results may be totally wrong/unrealistic (angle of force moves way too much fore)
+    * TODO: rescale parabolic shape based on % camber/draft/depth so to ; problem is that parabolic shape changes  the girth length what is obviously a constant (unless you change the sail)
+    
 * metrics
     * top of sail: 8.35m
     * mid of sail: 5m
