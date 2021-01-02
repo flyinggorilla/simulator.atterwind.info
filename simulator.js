@@ -897,7 +897,7 @@ function render() {
                 "<br>Apparent wind angle: " + Math.round(rad2grad(absAwaRad)) + "° (at mast-top)" +
                 "<br>Mast rotation: " + Math.round(Math.abs(boatParams.mastrotation)) + "°" +
                 "<br>Traveller: " + Math.round(travellerParams.position / 10) + "cm" +
-                "<br>Mainsheet give: " + Math.round(mainSheetLength / 10 - 86) + "cm" +   // TODO 86cm <--- somehow calculate the mainsheet fully tight length
+                "<br>Mainsheet give: " + Math.round(mainSheetLength / 10 - 86) + "cm (before purchase ratio)" +   // TODO 86cm <--- somehow calculate the mainsheet fully tight length
                 "<br>VMG: " + boatParams.vmg.toFixed(1) + "kn (approximate, ignores sideways drift)";
 
             let infoDetailHtml = "";
