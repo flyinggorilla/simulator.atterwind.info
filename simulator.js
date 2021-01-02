@@ -329,15 +329,15 @@ function init() {
             + "&csh=" + (cameraParams.syncRotation ? "1" : "0");
     }
 
-    const folderBoat = gui.addFolder('Boat');
-    folderBoat.add(boatParams, 'heading', boatLimits.minHeading, boatLimits.maxHeading, 1).name('heading [°]').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
-    folderBoat.add(boatParams, 'speed', 0, boatLimits.maxSpeed, 1).name('speed  [kn]').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
-    folderBoat.open();
-
     const folderWind = gui.addFolder('Wind');
     folderWind.add(windParams, 'speed', 0, windLimits.maxSpeed, 1).name('speed [kn]').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
     folderWind.add(windParams, 'hellman', windConditions).name('condition').onChange(recalcBoatConfigurationOnNextAnimationFrame);
     folderWind.open();
+
+    const folderBoat = gui.addFolder('Boat');
+    folderBoat.add(boatParams, 'heading', boatLimits.minHeading, boatLimits.maxHeading, 1).name('heading [°]').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
+    folderBoat.add(boatParams, 'speed', 0, boatLimits.maxSpeed, 1).name('speed  [kn]').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
+    folderBoat.open();
 
     function shareSimulatorView() {
         let url = buildStateUrl();
@@ -354,7 +354,8 @@ function init() {
                         }};
 
     const folderView = gui.addFolder("View");
-    folderView.add(cameraParams, 'syncRotation').name("sync with heading"); 
+    folderView.add(cameraParams, 'syncRotation').name("sync with heading").onChange(()=>{ firstTimeRotationSync = true; }); 
+    //TODO rotation sync jumps a bit when using first timme
     folderView.add(boatParams, 'details').name("show trim details").onChange(recalcBoatConfigurationOnNextAnimationFrame); 
     folderView.add(fViewShare,'share').name('share current view');
     let fViewDownwindFoiling = { downfoil:function(){ boatParams.heading = 135; boatParams.speed = 22; windParams.speed = 15; recalcBoatConfigurationOnNextAnimationFrame();  }};

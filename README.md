@@ -1,15 +1,38 @@
 ## https://simulator.atterwind.info
-# Apparent wind simulator for sailtwist analysis
-This simulation visualizes wind sheer and how it influences apparent wind at various boat headings. Understanding apparent wind directions at top, mid and lower parts of sail is helpful learning sail-trim.
+# Apparent Wind Sail-Trim Simulator 
+This simulator trims an [A-Class catamaran](https://www.a-cat.org/) towards apparent wind. While this is an idealization, it comes close enough to get a better understanding of sail-trim. Basic sail-twist concepts apply to all other catamarans like [Nacra 15](https://nacrasailing.com/our-boats/daggerboard-boats/nacra-15/) or [Nacra 17](https://nacra17.org/) as well as dinghys such as [Laser](http://www.laserinternational.org/) or [RS Aero](https://en.wikipedia.org/wiki/RS_Aero) too, just ignore lack of jib of the former and mast rotation, traveller on the latter. 
+* learn and understand true-wind vs. __apparent wind__ and it's impact to __sail-twist__ and trim
+* improve __sail-trim__ on the water with better understanding of how much sail-twist, mast-rotation and traveler move is needed in certain situations
+* __share simulator views__ as URL hyperlinks with others, as baseline to discuss real-world trim improvements
 
-![simulator](simulator-screenshot-1.jpg "sdf")
+![simulator](screenshots/simulator.jpg "simulator.atterwind.info")
 
-## Wind Sheer
-TODO: explain wind-sheer with example pics
+How to use this simulator:
+1. __adjust true-wind speed__ in knots. it's direction is irrelevant for the simulation.
+1. __adjust wind condition__, stable thermal winds have higher wind gradient impact than gusty unstable winds
+1. __adjust boat heading__ in degrees relative to true-wind direction - e.g. 50 degrees for upwind, and 135 for downwind. 
+1. __adjust boat speed__ in knots that you estimate to fit to wind and heading. The simulated foiling A-Cat will fly at 13+ knots. Because it's a simulator, have also fun sailing practically impossible configurations.
+1. __share view__ as HTTP URL with others
+
+## Wind Speed Gradient 
+Surface friction causes the wind speed to be close to zero at the surface, meaning that the air molecules are slowed down by the water surface. Slow air molecules also slow down the air above them and so forth. This causes a gradient of wind speeds, also called wind shear. This simulation calculates the wind gradient based on this [wind turbine research][1].
+ The biggest impact to sailors is at the height .5 to 3m
+
+[stable]: https://simulator.atterwind.info/?bh=103&bs=0&ws=25&wh=0.27&ch=5.5&cs=-21.7&cl=10.2&cry=13.7&crz=179.4&crx=-177.6&cth=4.5&cts=2.8&ctl=4.3&csh=0 (view in simulator)
+
+[neutral]: https://simulator.atterwind.info/?bh=103&bs=0&ws=25&wh=0.1&ch=5.5&cs=-21.7&cl=10.2&cry=13.7&crz=179.4&crx=-177.6&cth=4.5&cts=2.8&ctl=4.3&csh=0 (view in simulator)
+
+[unstable]: https://simulator.atterwind.info/?bh=103&bs=0&ws=25&wh=0.06&ch=5.5&cs=-21.7&cl=10.2&cry=13.7&crz=179.4&crx=-177.6&cth=4.5&cts=2.8&ctl=4.3&csh=0 (view in simulator)
+
+| [stable][stable] | [neutral][neutral] | [unstable][unstable] |
+|:---:|:---:|:---:|
+| [![Stable wind condition](screenshots/windSheer25ktsStable.jpg)][stable] | ![Neutral wind condition](screenshots/windSheer25ktsNeutral.jpg) | ![Unstable wind condition](screenshots/windSheer25ktsUnstable.jpg) |
+|a=0.27|a=0.1|a=0.06|
+
 
 ## Sail Twist
 TODO: explain sail-twist
-
+A-Cat mast is about 10%
 
 ## The (Non-)Science 
 
@@ -29,7 +52,8 @@ TODO: explain sail-twist
     * calculations based on [[3]](http://www.onemetre.net/design/Parab/Parab.htm)
 
 * cunningham
-    * changes parabolic sail shape --- looks good, but "angle of force" results may be totally wrong/unrealistic (angle of force moves way too much fore)
+    * bending the mast with the cunningham flattens the sail (TODO)
+ * changes parabolic sail shape --- looks good, but "angle of force" results may be totally wrong/unrealistic (angle of force moves way too much fore)
     * TODO: rescale parabolic shape based on % camber/draft/depth so to ; problem is that parabolic shape changes  the girth length what is obviously a constant (unless you change the sail)
     
 * metrics
@@ -73,17 +97,28 @@ DONE:
 * quicksettings: "downwind foiling", "downwind light winds", "upwind foiling", "upwind max height", "reaching"
 TODO:
 * add "info" button and create a windsheer and twist explainer page
-* vizualize sail, and add "angle of attack" 
+* Add  "angle of attack" setting (experimental?)
+* Add outhaul??
+* Add force moments and simulate a body sitting, hiking or trapezing 
+* NEED a polar to provide max speed info (vs. wishful speeds of) to enable "constraints" 
 * add water spray & boat speed visualization (simple lines or particle engine)
 https://stemkoski.github.io/Three.js/Particle-Engine.html 
 * add WebXR (VR) capability -- update threejs for that
 
 ### Further references:
-* [1] wind sheer: https://en.wikipedia.org/wiki/Wind_gradient
-* [2] apparent wind: https://en.wikipedia.org/wiki/Apparent_wind 
-* [3] sail shape: http://www.onemetre.net/design/Parab/Parab.htm 
+[1]: https://en.wikipedia.org/wiki/Wind_gradient (wind speed gradient)
+[[1]] wind gradient: https://en.wikipedia.org/wiki/Wind_gradient
+[2]: https://en.wikipedia.org/wiki/Apparent_wind (apparent wind)
+[[2]]: https://en.wikipedia.org/wiki/Apparent_wind (apparent wind)
+[3]: http://www.onemetre.net/design/Parab/Parab.htm (parabolic sail shape)
+[[3]]: http://www.onemetre.net/design/Parab/Parab.htm (parabolic sail shape)
 
 ### Credits go to great sources used in this project:
 * threejs: https://threejs.org/ 3D WebGL library
 * water animation: https://github.com/mrdoob/three.js/blob/master/examples/webgl_shaders_ocean.html 
 * a-cat: the A-Cat model is derived from https://grabcad.com/library/class-a-catamaran-1 and changed to DNA F1x hull shape, and mast moved forward to allow for proper 13.94m2 sail area.
+
+
+<img src="simulator-screenshot-1.jpg" width="30%">
+<img src="simulator-screenshot-1.jpg" width="30%">
+<img src="simulator-screenshot-1.jpg" width="30%">
