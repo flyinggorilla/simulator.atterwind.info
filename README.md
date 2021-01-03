@@ -5,7 +5,7 @@ This simulator trims an [A-Class catamaran](https://www.a-cat.org/) towards appa
 * improve __sail-trim__ on the water with better understanding of how much sail-twist, mast-rotation and traveler move is needed in certain situations
 * __share simulator views__ as URL hyperlinks with others, as baseline to discuss real-world trim improvements
 
-![simulator](screenshots/simulator.jpg "simulator.atterwind.info")
+<img src="screenshots/simulator.jpg" alt="simulator.atterwind.info"></img>
 
 Quick intro on how to use this simulator:
 1. __adjust true-wind speed__ in knots. it's direction is irrelevant for the simulation.
