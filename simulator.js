@@ -846,10 +846,10 @@ function render() {
             if (absAwaRad < 0.01) {  
                 chordAngleOfAttackRad = 0;
             } 
-            console.log("absawa: " + rad2grad(absAwaRad).toFixed(2) + " mastangleofattack: " + rad2grad(mastEntryAngleRad).toFixed(2));
+            //console.log("absawa: " + rad2grad(absAwaRad).toFixed(2) + " mastangleofattack: " + rad2grad(mastEntryAngleRad).toFixed(2));
 
             let mastRotationRad = Math.min(absAwaRad - chordAngleOfAttackRad + mastEntryAngleRad, maxMastRotationRad); 
-            console.log("mastRotationRad: " + rad2grad(mastRotationRad).toFixed(2));
+            //console.log("mastRotationRad: " + rad2grad(mastRotationRad).toFixed(2));
 
             // adjust sailshape
             let luffAxis = new THREE.Vector3(0, 1, 0);
@@ -951,7 +951,7 @@ function render() {
             if (boatParams.details) {
                 infoDetailHtml = 
                     "<br>Chord angle of attack: <span " + (Math.round(actualAngleOfAttack) < sailParams.angleOfAttack ? "style='color:red'>" : ">") + Math.round(actualAngleOfAttack) + "</span>° (apparent wind vs. chord at mast top)" +
-                    "<br>Mast angle of attack: -" + Math.round(rad2grad(boatParams.angleOfAttack - mastEntryAngleRad)) + "° (vs. apparent wind)" +
+                    "<br>Mast angle of attack: -" + Math.round(rad2grad(sailParams.angleOfAttack - mastEntryAngleRad)) + "° (vs. apparent wind)" +
                     "<br>Sail area: " + (sailParams.mastArea + sailParams.sailArea).toFixed(2) + "m² (mast: " + sailParams.mastArea.toFixed(2) + "m², sail: " + sailParams.sailArea.toFixed(2) + "m²)" + //&sup2;
                     "<br>Mast foot over water: " + (mastFootOverWaterHeight / 1000).toFixed(1) + "m" +
                     "<br>Apparent wind power: " + power.toFixed(1) + "kn average over sail" +

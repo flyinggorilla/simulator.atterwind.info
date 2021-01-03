@@ -135,13 +135,13 @@ This table is a big guesstimate right now as I need a polar diagram and more acc
 |course|upwind|upwind|upwind flying|upwind foiling|downwind|downwind foiling|downwind foiling|downwind foiling|
 |wind speed [kn]|4|9|14|20|5|8|14|20|
 |heading [°]|45|45|45|50|135|130|140|150|
-|boat speed [kn]|3|8|11|20|5|15|22|25|
-|vmg [kn]|2.1|5.7|7.8|12.9|3.5|9.6|16.9|21.7|
-|twist [°]|6|4|5|6|31|6|18|28|
+|boat speed [kn]|3|8|11|20|5|15|20|25|
+|vmg [kn]|2.1|5.7|7.8|12.9|3.5|9.6|16.4|21.7|
+|twist [°]|6|4|5|6|31|13.4|21|28|
 |sail chord angle of attack [°]|20|20|20|__15__|__15__|__15__|__15__|__15__|
-|apparent wind speed at mast top [kn]|6|16|23|36|4|12|14|13|
-|mast rotation [°]|21 _vs. 50_|19 _vs. 30_|21 _vs. 25_|21 _vs. 20_|58 _vs. 70_|22 _vs. 30_|34 _vs. 40_|43 _vs. 50_|
-|traveller [cm]|0|0|0|0 _vs. 5-10_|60 _vs. max_|7 _vs. 10_|19 _vs. 20_|26 _vs. 30_|
+|apparent wind speed at mast top [kn]|6|16|23|36|4|12|12|13|
+|mast rotation [°]|21 _vs. 50_|19 _vs. 30_|21 _vs. 25_|25 _vs. 20_|68 _vs. 70_|32 _vs. 30_|44 _vs. 40_|53 _vs. 50_|
+|traveller [cm]|0|0|1 _vs. 0_|11 _vs. 5-10_|57 _vs. max_|6 _vs. 10_|16 _vs. 20_|24 _vs. 30_|
 
 When the table shows a _vs._ then it is simulator _vs. Mischa's real-world-best-practice_.
 
@@ -151,7 +151,7 @@ First conclusions: Calculations were based on 20° angle of apparent wind vs. sa
 [upwind1]: https://simulator.atterwind.info/?bh=45&bs=3&ws=4&wh=0.27&ch=17.0&cs=-1.9&cl=2.0&cry=9.4&crz=134.6&crx=-99.2&cth=5.0&cts=0.0&ctl=0.0&csh=0&vd=1 (view in simulator)
 [upwind2]: https://simulator.atterwind.info/?bh=-45&bs=8&ws=9&wh=0.27&ch=12.3&cs=-9.3&cl=-3.6&cry=-16.9&crz=-167.1&crx=-141.7&cth=5.0&cts=0.0&ctl=0.0&csh=0&vd=1 (view in simulator)
 [upwind3]: https://simulator.atterwind.info/?bh=-45&bs=11&ws=14&wh=0.27&ch=11.9&cs=2.9&cl=9.8&cry=52.8&crz=62.2&crx=-67.2&cth=5.0&cts=0.0&ctl=0.0&csh=0&vd=1 (view in simulator)
-[upwind4]: https://simulator.atterwind.info/?bh=-50&bs=20&ws=20&wh=0.27&ch=7.9&cs=7.6&cl=0.2&cry=-2.1&crz=-1.6&crx=-36.9&cth=2.4&cts=0.4&ctl=0.5&csh=0&saa=15 (view in simulator)
+[upwind4]: https://simulator.atterwind.info/?bh=-50&bs=20&ws=20&wh=0.27&ch=10.3&cs=4.8&cl=-0.5&cry=-6.3&crz=-11.2&crx=-60.9&cth=2.4&cts=0.4&ctl=0.5&saa=15&vd=1 (view in simulator)
 [downwind1]: https://simulator.atterwind.info/?bh=135&bs=5&ws=5&wh=0.27&ch=11.9&cs=2.9&cl=9.8&cry=52.8&crz=62.2&crx=-67.2&cth=5.0&cts=0.0&ctl=0.0&csh=0&saa=15&vd=1 (view in simulator)
 [downwind2]: https://simulator.atterwind.info/?bh=130&bs=15&ws=8&wh=0.27&ch=7.2&cs=-1.6&cl=3.0&cry=25.8&crz=101.0&crx=-94.9&cth=3.0&cts=-1.3&ctl=0.9&csh=0&saa=15&vd=1 (view in simulator)
 [downwind3]: https://simulator.atterwind.info/?bh=145&bs=20&ws=14&wh=0.27&ch=9.0&cs=-0.2&cl=5.1&cry=41.1&crz=89.5&crx=-89.7&cth=4.2&cts=-0.2&ctl=1.0&csh=0&saa=15&vd=1 (view in simulator)

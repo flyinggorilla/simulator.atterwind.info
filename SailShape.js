@@ -137,8 +137,6 @@ export default class SailShape {
         let girth = 0;
         let p1 = null;
         let scaledMastWidth = this.mastWidth*this.chordTackLevel/this.chordMastTop; // since the sail is drastically more narrow at the top, scale the mastwidth relative to the tack-level chord
-        console.log("chordmasttop " + this.chordTackLevel);
-        console.log("scaledMastWidth: " + scaledMastWidth);
         for (const p2 of this.shapeScaled) {
             if (p1) {
                 girth += p2.distanceTo(p1); //girth += math.sqrt((x2-x1)**2 + (y2-y1)**2)
