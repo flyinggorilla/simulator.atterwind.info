@@ -50,6 +50,7 @@ const boatLimits = {
     maxTraveller: 800 //mm
 }
 
+
 const windLimits = {
     maxSpeed: 30,
 }
@@ -76,7 +77,7 @@ const windParams = {
 }
 
 const sailDefaults = {
-    angleOfAttack: 15,
+    angleOfAttack: 20,
     cunningham: 1
 }
 
@@ -91,7 +92,7 @@ const sailParams = {
     mastArea: 0,
     sailArea: 0,
     cunningham: 1,
-    angleOfAttack: sailDefaults.angleOfAttack
+    angleOfAttack: sailDefaults.angleOfAttack,
 }
 
 const cameraDefaults = {
@@ -561,7 +562,9 @@ function init() {
                 mast.add(new THREE.AxesHelper(1000));
             }
 
-            mast.add(rigSail());
+            const sail = rigSail();
+            sail.position.x = sailOriginInFrontOfMastRotation;
+            mast.add(sail);
             boat.add(mast);
 
             const mainSheetMaterial = new THREE.LineBasicMaterial({ color: 0x8f0f0f });
@@ -604,6 +607,7 @@ const sailMastWidth = 140; // mm
 const sailDecksweeperWidth = 900; // mm distance from mast
 const sailTopMastDistance = 390; // mm distance of sail leech at mast top
 const sailLeechCurvature = 200; //mm how curved the leech is vs. a straight line
+const sailOriginInFrontOfMastRotation = 30; //sail leech starts at the foreside of the mast (as mast is part of sail shape)
 let sail, sailGeometry, sailClipWidthPerLevel;
 let mainSheet, mainSheetGeometry;
 
@@ -788,7 +792,7 @@ function render() {
 
             let boatHeadingRad = grad2rad(boatParams.heading);
             if (sailParams.cunningham != lastCunningham) { 
-                sailShape = new SailShape(sailTackMastDistance, sailMastWidth, sailParams.cunningham);
+                sailShape = new SailShape(sailTackMastDistance, sailTopMastDistance, sailMastWidth, sailParams.cunningham);
                 recalcBoatConfiguration = true;
             }
 
@@ -838,15 +842,14 @@ function render() {
             const maxChordRotationPerSailLevelRad = Math.PI/3*2 / sailLevels; // empirical limit
 
             let absAwaRad = Math.abs(aw.awa);
-            let mastEntryAngleRad = sailShape.mastAngleRad; //sailShape.getMastAngle(sailMastWidth);
+            let mastEntryAngleRad = sailShape.mastAngleRad; 
             if (absAwaRad < 0.01) {  
                 chordAngleOfAttackRad = 0;
-                mastEntryAngleRad = 0;
             } 
-            //console.log("absawa: " + absAwa + " mastangleofattack: " + mastEntryAngle);
+            console.log("absawa: " + rad2grad(absAwaRad).toFixed(2) + " mastangleofattack: " + rad2grad(mastEntryAngleRad).toFixed(2));
 
-            let mastRotationRad = Math.min(absAwaRad + chordAngleOfAttackRad - mastEntryAngleRad, maxMastRotationRad); 
-            //console.log("mastRotationRad: " + rad2grad(mastRotationRad).toFixed(2));
+            let mastRotationRad = Math.min(absAwaRad - chordAngleOfAttackRad + mastEntryAngleRad, maxMastRotationRad); 
+            console.log("mastRotationRad: " + rad2grad(mastRotationRad).toFixed(2));
 
             // adjust sailshape
             let luffAxis = new THREE.Vector3(0, 1, 0);
@@ -929,7 +932,6 @@ function render() {
             boat.updateWorldMatrix(false, true);
             let mainSheetLength = Math.round(recalcMainSheet(pTackWorld));
 
-//TDODO CHORD ANGLE OF ATTACK IS WRONG!!!!!            
             let actualAngleOfAttack = rad2grad(absAwaRad - topChordRotationRad - mastRotationRad); // use this to calculate forces
             //console.log("topchordangle: " + rad2grad(topChordRotationRad).toFixed(2) + " mastrotation: " + rad2grad(mastRotationRad).toFixed(2) + "absawa:" + rad2grad(absAwaRad).toFixed(2))
 
@@ -949,7 +951,7 @@ function render() {
             if (boatParams.details) {
                 infoDetailHtml = 
                     "<br>Chord angle of attack: <span " + (Math.round(actualAngleOfAttack) < sailParams.angleOfAttack ? "style='color:red'>" : ">") + Math.round(actualAngleOfAttack) + "</span>° (apparent wind vs. chord at mast top)" +
-                    "<br>Mast angle of attack: -" + Math.round(rad2grad(mastEntryAngleRad)) + "°" +
+                    "<br>Mast angle of attack: -" + Math.round(rad2grad(boatParams.angleOfAttack - mastEntryAngleRad)) + "° (vs. apparent wind)" +
                     "<br>Sail area: " + (sailParams.mastArea + sailParams.sailArea).toFixed(2) + "m² (mast: " + sailParams.mastArea.toFixed(2) + "m², sail: " + sailParams.sailArea.toFixed(2) + "m²)" + //&sup2;
                     "<br>Mast foot over water: " + (mastFootOverWaterHeight / 1000).toFixed(1) + "m" +
                     "<br>Apparent wind power: " + power.toFixed(1) + "kn average over sail" +

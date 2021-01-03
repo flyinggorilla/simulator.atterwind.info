@@ -1,27 +1,25 @@
 ## https://simulator.atterwind.info
 # Apparent Wind Sail-Trim Simulator 
-This simulator trims an [A-Class catamaran](https://www.a-cat.org/) towards apparent wind. While this is an idealization, it comes close enough to get a better understanding of sail-trim. Basic sail-twist concepts apply to all other catamarans like [Nacra 15](https://nacrasailing.com/our-boats/daggerboard-boats/nacra-15/) or [Nacra 17](https://nacra17.org/) as well as dinghys such as [Laser](http://www.laserinternational.org/) or [RS Aero](https://en.wikipedia.org/wiki/RS_Aero) too, just ignore lack of jib of the former and mast rotation, traveller on the latter. 
+This simulator trims an [A-Class catamaran](https://www.a-cat.org/) to best fit calculated apparent wind. While this is an idealization, it comes close enough to get a better understanding of sail-trim. Basic sail-twist concepts apply to all other catamarans like [Nacra 15](https://nacrasailing.com/our-boats/daggerboard-boats/nacra-15/) or [Nacra 17](https://nacra17.org/) as well as dinghys such as [Laser](http://www.laserinternational.org/) or [RS Aero](https://en.wikipedia.org/wiki/RS_Aero) too, just ignore lack of jib of the former and mast rotation, traveller on the latter. 
 * learn and understand true-wind vs. __apparent wind__ and it's impact to __sail-twist__ and trim
 * improve __sail-trim__ on the water with better understanding of how much sail-twist, mast-rotation and traveler move is needed in certain situations
 * __share simulator views__ as URL hyperlinks with others, as baseline to discuss real-world trim improvements
 
-<img src="screenshots/simulator.jpg" alt="simulator.atterwind.info"></img>
+![simulator](screenshots/simulator.jpg "simulator.atterwind.info")
 
 Quick intro on how to use this simulator:
 1. __adjust true-wind speed__ in knots. it's direction is irrelevant for the simulation.
 1. __adjust wind condition__, stable thermal winds have higher wind gradient impact than gusty unstable winds
 1. __adjust boat heading__ in degrees relative to true-wind direction - e.g. 50° for upwind, and 135° for downwind. 
 1. __adjust boat speed__ in knots that you estimate to fit to wind and heading. The simulated foiling A-Cat will fly at 13+ knots. Because it's a simulator, have also fun sailing practically impossible configurations.
-1. click _share current view_ to __bookmark__ this view or __share__ it as Web link with others
+1. click _share current view_ to __bookmark__ your current view or __share__ it as Web link with others
 
 # Basics
 ## Wind Speed Gradient 
-Surface friction causes the wind speed to be close to zero at the surface, meaning that the air molecules are slowed down by the water surface. Slow air molecules also slow down the air above them and so forth. This causes a gradient of wind speeds, also called wind shear. This simulation calculates the wind gradient based on this [wind turbine research][1]. Results are similar to studies by Frand Bethwaite's High Performance Sailing. When looking at the three screenshots below, you see on each on the left the true-wind-field. The cone points into the direction of wind flow and represents wind-speed by it's length. You will notice that the biggest wind speed gradient impact is in the lower third 0-3m range of the ~10m high boat. The leftmost configuration shows stable winds, which have highest wind sheer and the right most unstable gusty wind conditions. Those conditions are specified in the formula by the _Hellman_ constant _a_. The apparent wind is visualized in front of the mast of the catamaran. However, as in this configuration the boat is not moving, the apparent wind gradient equals the true wind gradient. 
+Surface friction causes the wind speed to be close to zero at the surface, meaning that the air molecules are slowed down by the water surface. Slow air molecules also slow down the air above them and so forth. This causes a gradient of wind speeds, also called wind shear. This simulation calculates the wind gradient based on this [wind turbine research][wikipediagradient]. Results are similar to studies by Frank Bethwaite's High Performance Sailing. When looking at the three screenshots below, you see on each on the left the true-wind-field. The cone points into the direction of wind flow and represents wind-speed by it's length. You will notice that the biggest wind speed gradient impact is in the lower third 0-3m range of the ~10m high boat. The leftmost configuration shows stable winds, which have highest wind sheer and the right most unstable gusty wind conditions. Those conditions are specified in the formula by the _Hellman_ constant _a_. The apparent wind is visualized in front of the mast of the catamaran. However, as in this configuration the boat is not moving, the apparent wind gradient equals the true wind gradient. 
 
 [stable]: https://simulator.atterwind.info/?bh=103&bs=0&ws=25&wh=0.27&ch=5.5&cs=-21.7&cl=10.2&cry=13.7&crz=179.4&crx=-177.6&cth=4.5&cts=2.8&ctl=4.3&csh=0 (view in simulator)
-
 [neutral]: https://simulator.atterwind.info/?bh=103&bs=0&ws=25&wh=0.1&ch=5.5&cs=-21.7&cl=10.2&cry=13.7&crz=179.4&crx=-177.6&cth=4.5&cts=2.8&ctl=4.3&csh=0 (view in simulator)
-
 [unstable]: https://simulator.atterwind.info/?bh=103&bs=0&ws=25&wh=0.06&ch=5.5&cs=-21.7&cl=10.2&cry=13.7&crz=179.4&crx=-177.6&cth=4.5&cts=2.8&ctl=4.3&csh=0 (view in simulator)
 
 | [stable][stable] | [neutral][neutral] | [unstable][unstable] |
@@ -30,7 +28,7 @@ Surface friction causes the wind speed to be close to zero at the surface, meani
 |a=0.27|a=0.1|a=0.06|
 
 ## Apparent Wind
-Apparent wind is the combination of true-wind and fair-wind (headwind) and well explained in [wikipedia's apparent wind article][2]. It is the main but not only reason for trimming twist into the sail. On high speed boats, such as foiling catamarans one can sail faster than the true wind-speed by leveraging apparent winds as shown on below left picture, foiling downwind at 23kn boatspeed and 15kn windspeed. This picture shows further, that the sail trim is similar to upwind sail trim as the apparent wind comes from a 94° different direction than the true wind.
+Apparent wind is the combination of true-wind and fair-wind (headwind) and well explained in [wikipedia's apparent wind article][wikipediaapparrent]. It is the main but not only reason for trimming twist into the sail. On high speed boats, such as foiling catamarans one can sail faster than the true wind-speed by leveraging apparent winds as shown on below left picture, foiling downwind at 23kn boatspeed and 15kn windspeed. This picture shows further, that the sail trim is similar to upwind sail trim as the apparent wind comes from a 94° different direction than the true wind.
 
 [<img src="screenshots/apparentWindDownwindFoiling.jpg" width=50%>](
 https://simulator.atterwind.info/?bh=135&bs=23&ws=15&wh=0.27&ch=6.8&cs=13.9&cl=-3.8&cry=-26.8&crz=-5.4&crx=-11.8&cth=4.1&cts=0.8&ctl=3.0&csh=0 "View in simulator")[<img src="screenshots/apparentWindDownwindFoilingTopview.jpg" width=50%>](
@@ -46,14 +44,14 @@ As the true-wind has different speeds at different heights due to the wind-speed
 There are following reasons for twisting the sail:
 * shaping the sail (think airfoil wing) to always have the __right angle of attack to the apparent wind__ which changes direction and speed in height --- that's to me the main reason why the pro's say _twist is speed_.
 * more __tolerance for dynamic wind changes__ twisted sail shape is more forgiving, as the broader range of angles to the wind keeps the airflow going and there is less risk for stalls
-    * __gusts__ can turn the apparent wind windwards (and lulls obviuosly the other way)
+    * __quick gust peaks__ can turn the apparent wind windwards (and lulls obviuosly the other way) - according to [Frank Bethwaite's Higher Performance sailing](https://amzn.to/2OU08OV), wind speed increases and decreases rapidly by an average of +/- 7% every 6 to 12 seconds. His data shows they occur even in lake breezes, which are typically thought to be smooth, steady winds. 
     * __boat rocking__ due to waves moves the mast top back and forth which can change apparent wind direction a lot in the mast-top, hence you sail with more twist to be more tolerant of dynamic apparent wind direction changes
 * __get the airflow over the sail going__ when the boat was stopped or slowed down after a tack
 * __reduce power__ in the sail, as the twist can bring especially the top section of the sail closer into the wind reducing angle of attack and as such lift
 
 How to adjust twist?
-* __sheet-out the mainsheet__ - this simulator displays bottom left in the text overlay how much mainsheet to give to achieve the twist. Note that this length is A-Class specific and you need to multiply this length with your pulley ratio. e.g. when the simulator shows 1cm give of mainsheet and you have a 12:1 purchase system, then it means you give 12cm with your hands.
-* __restrict or force mast rotation__. The mast attributes approx. 10% of the entire 13.94m² sail area on an A-Class catamaran, so it has a significant impact have the right angle of attack of the mast to the wind. When enabling the display of detailed trim metrics, you can find the calculated angle of attack to the wind by the mast. With the simulators default parabolic sail shape this is about -4.4° degrees to the apparent wind. Think of the mast as the very front section of an airplane wing.
+* __sheet-out the mainsheet__. This simulation sheets in and out automatically to meet the theoretical ideal twist. How much mainsheet to give to achieve the twist is displayed and bottom left in the text overlay. Note that this length is A-Class specific and you need to multiply this length with your pulley ratio. e.g. when the simulator shows 1cm give of mainsheet and you have a 12:1 purchase system, then it means you give 12cm with your hands. While this is not a precise metric, it provides the right magnitude.
+* __restrict or force mast rotation__. The mast attributes approx. 10% of the entire 13.94m² sail area on an A-Class catamaran, so it has a significant impact have the right angle of attack of the mast to the wind. The simulator puts the mast rotation exactly into the angle of the front part of the parabolic wing shape. When enabling the display of detailed trim metrics, you can find the calculated angle of attack to the wind by the mast. With the simulators default parabolic sail shape this is about -4.4° degrees to the apparent wind (at 20° angle of attack). Think of the mast as the very front section of an airplane wing.
 * __sheet-out the traveller__ to reduce twist while keeping the sail adjusted to the apparent wind on downwind courses. 
 
 [downwindlight]: https://simulator.atterwind.info/?bh=135&bs=6&ws=6&wh=0.27&ch=13.0&cs=11.6&cl=-4.3&cry=-27.4&crz=-20.9&crx=-39.8&cth=4.1&cts=0.8&ctl=3.0&csh=0 (view in simulator)
@@ -240,8 +238,9 @@ The simulator can be configured with URL query string parameters. You get those 
 
 
 [dnaf1x]: https://dnaperformancesailing.com/our-boats/f1x-a-class-foiling-catamaran/
-[onemetre]: (http://www.onemetre.net/design/Parab/Parab.htm)
-
+[onemetre]: http://www.onemetre.net/design/Parab/Parab.htm
+[wikipediaapparrent]: https://en.wikipedia.org/wiki/Apparent_wind
+[wikipediagradient]: https://en.wikipedia.org/wiki/Wind_gradient
 [forcesonsails]: https://en.wikipedia.org/wiki/Forces_on_sails (wikipedia: forces on sails)
 [polardiagram]: https://en.wikipedia.org/wiki/Polar_diagram_(sailing) (wikipedia: polar diagram)
 

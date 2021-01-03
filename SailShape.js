@@ -15,13 +15,19 @@ export default class SailShape {
     girth; // length of sail following the parabolic shape [mm]
     mastAngleRad; // mast angle as part of the sail-shape [rad]
     sag; // sag (estimated outhaul movement) [mm]
+    chordMastTop;
+    chordTackLevel;
+    mastWidth;
 
     // private
     shapeRotated = []; // array of rotated sail shape points
     shapeScaled = []; // array of rotated and scaled sail shape points
 
     // cunningham is a number 1 .. 10
-    constructor(chord, mastWidth, cunningham = 1) {
+    constructor(chordTackLevel, chordMastTop, mastWidth, cunningham = 1) {
+        this.chordMastTop = chordMastTop;
+        this.chordTackLevel = chordTackLevel;
+        this.mastWidth = mastWidth;
 
         // parabolic function fx(t): x=at^2, fy(t): y=2at
         const parabola = (t, a = 1) => new Vector2(a * t ** 2, 2 * a * t);
@@ -57,7 +63,7 @@ export default class SailShape {
             this.shapeRotated.push(p);
         }
 
-        this.calcShape(chord, mastWidth, fullness);
+        this.calcShape(fullness);
     }
 
 
@@ -65,9 +71,9 @@ export default class SailShape {
     // calculate the shape for this chord length in [mm]
     // chord length = boom length - outhaul (straight leech to luff distance)
     // fullness: simple depth scaling factor to flatten the sail without recalculating the parabola
-    calcShape(chord, mastWidth, fullness = 1) {
+    calcShape(fullness = 1) {
         this.shapeScaled = [];
-        let scale = chord / (this.shapeRotated[this.shapeRotated.length - 1].x - this.shapeRotated[0].x);
+        let scale = this.chordTackLevel / (this.shapeRotated[this.shapeRotated.length - 1].x - this.shapeRotated[0].x);
         //console.log("scale: " + scale.toFixed(2));
 
         // clone and scale 
@@ -109,28 +115,30 @@ export default class SailShape {
         //console.log("girth: " + this.girth.toFixed(2));
 
         // sag (estimated outhaul movement)
-        this.sag = chord - this.girth;
+        this.sag = this.chordTackLevel - this.girth;
 
         // entry & exit angle in [rad]
         this.entryAngleRad = this.shapeScaled[1].clone().sub(this.shapeScaled[0]).angle(); //entryAngle = 180*math.atan((y2-y1)/(x2-x1))/math.pi
         this.exitAngleRad = this.shapeScaled[this.shapeScaled.length - 1].clone().sub(this.shapeScaled[this.shapeScaled.length - 2]).angle() - Math.PI * 2;
-        this.mastAngleRad = this.getMastAngle(mastWidth);
+        this.mastAngleRad = this.calcMastAngle();
 
         // force angle Forward inclination of sail lift force
         this.forceAngleRad = (this.entryAngleRad + this.exitAngleRad) / 2;
 
         // max depth as draft vs. chord %
-        this.draftDepthRatio = this.draftDepth / chord; // depth as draft vs. chord ;
+        this.draftDepthRatio = this.draftDepth / this.chordTackLevel; // depth as draft vs. chord ;
 
         // max depth as draft vs. chord %
-        this.draftPositionRatio = this.draftPosition / chord; // depth as draft vs. chord ;
+        this.draftPositionRatio = this.draftPosition / this.chordTackLevel; // depth as draft vs. chord ;
     }
 
     // calculate sail-shape angle at with of mast and provide resulting mast-rotation, because mast is part of sail-shape
-    getMastAngle(mastWidth) {
+    calcMastAngle() {
         let girth = 0;
-        let angles = [];
         let p1 = null;
+        let scaledMastWidth = this.mastWidth*this.chordTackLevel/this.chordMastTop; // since the sail is drastically more narrow at the top, scale the mastwidth relative to the tack-level chord
+        console.log("chordmasttop " + this.chordTackLevel);
+        console.log("scaledMastWidth: " + scaledMastWidth);
         for (const p2 of this.shapeScaled) {
             if (p1) {
                 girth += p2.distanceTo(p1); //girth += math.sqrt((x2-x1)**2 + (y2-y1)**2)
@@ -138,7 +146,8 @@ export default class SailShape {
                     return p2.clone().sub(p1).angle();
 
                 }*/
-                if (girth >= (mastWidth)) {
+                
+                if (girth >= scaledMastWidth) {
                     return p2.angle();
                 }
             }
