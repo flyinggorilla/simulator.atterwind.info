@@ -46,7 +46,8 @@ const boatLimits = {
     maxHeading: 180,   // [grad]
     minFoilingSpeed: 13,  // [kn]
     foilingBoatLift: 0.52,  // [m] (approx)
-    waterlineToMastFootHeight: 0.45 // [m]  (approx)
+    waterlineToMastFootHeight: 0.45, // [m]  (approx)
+    maxTraveller: 800 //mm
 }
 
 const windLimits = {
@@ -74,10 +75,23 @@ const windParams = {
     hellman: 0.27
 }
 
+const sailDefaults = {
+    angleOfAttack: 15,
+    cunningham: 1
+}
+
+const sailLimits = {
+    minAngleOfAttack: 10,
+    maxAngleOfAttack: 25,
+    minCunningham: 1,
+    maxCunningham: 10
+}
+
 const sailParams = {
     mastArea: 0,
     sailArea: 0,
-    cunningham: 1
+    cunningham: 1,
+    angleOfAttack: sailDefaults.angleOfAttack
 }
 
 const cameraDefaults = {
@@ -184,6 +198,20 @@ function getUrlParameters() {
         cameraParams.syncRotation = true;
     } else {
         cameraParams.syncRotation = false;
+    }
+    let viewDetails = parseInt(getURLParameter("vd"));
+    if (viewDetails == 1) {
+        boatParams.details = true;
+    } // ignore details off
+    let sailAngleOfAttack = parseFloat(getURLParameter("saa"));
+    if (sailAngleOfAttack >= sailLimits.minAngleOfAttack && sailAngleOfAttack <= sailLimits.maxAngleOfAttack)
+    {
+        sailParams.angleOfAttack = sailAngleOfAttack;
+    }
+    let sailCunningham = parseFloat(getURLParameter("sc"));
+    if (sailCunningham >= sailLimits.minCunningham && sailCunningham <= sailLimits.maxCunningham)
+    {
+        sailParams.cunningham = sailCunningham;
     }
 
 
@@ -322,11 +350,23 @@ function init() {
 
     
     function buildStateUrl() {
-        return "?bh=" + boatParams.heading + "&bs=" + boatParams.speed + "&ws=" + windParams.speed + "&wh=" + windParams.hellman
-            + "&ch=" + camera.position.y.toFixed(1) + "&cs=" + camera.position.z.toFixed(1) + "&cl=" + camera.position.x.toFixed(1)
-            + "&cry=" + rad2grad(camera.rotation.y).toFixed(1) + "&crz=" + rad2grad(camera.rotation.z).toFixed(1) + "&crx=" + rad2grad(camera.rotation.x).toFixed(1)
-            + "&cth=" + controls.target.y.toFixed(1) + "&cts=" + controls.target.z.toFixed(1) + "&ctl=" + controls.target.x.toFixed(1)
-            + "&csh=" + (cameraParams.syncRotation ? "1" : "0");
+        return "?bh=" + boatParams.heading 
+            + "&bs=" + boatParams.speed 
+            + "&ws=" + windParams.speed 
+            + "&wh=" + windParams.hellman
+            + "&ch=" + camera.position.y.toFixed(1) 
+            + "&cs=" + camera.position.z.toFixed(1) 
+            + "&cl=" + camera.position.x.toFixed(1)
+            + "&cry=" + rad2grad(camera.rotation.y).toFixed(1) 
+            + "&crz=" + rad2grad(camera.rotation.z).toFixed(1) 
+            + "&crx=" + rad2grad(camera.rotation.x).toFixed(1)
+            + "&cth=" + controls.target.y.toFixed(1) 
+            + "&cts=" + controls.target.z.toFixed(1) 
+            + "&ctl=" + controls.target.x.toFixed(1)
+            + (cameraParams.syncRotation ? "&csh=1" : "") 
+            + (sailDefaults.angleOfAttack != sailParams.angleOfAttack ? "&saa=" + Math.round(sailParams.angleOfAttack) : "")
+            + (boatParams.details ? "&vd=1" : "") 
+            + (sailParams.cunningham != sailDefaults.cunningham ? "&sc=" + sailParams.cunningham : "");
     }
 
     const folderWind = gui.addFolder('Wind');
@@ -383,7 +423,8 @@ function init() {
     folderView.add(fViewCameraReset,'camera').name('reset camera');
 
     const folderAdvanced = gui.addFolder("Experimental");
-    folderAdvanced.add(sailParams, 'cunningham', 1, 10, 1).name('cunningham').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
+    folderAdvanced.add(sailParams, 'cunningham', sailLimits.minCunningham, sailLimits.maxCunningham, 1).name('cunningham').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
+    folderAdvanced.add(sailParams, 'angleOfAttack', sailLimits.minAngleOfAttack, sailLimits.maxAngleOfAttack, 1).name('angle of attack').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
 
 
 
@@ -792,7 +833,7 @@ function render() {
             let aw = Wind.apparentWind(boatParams.speed, boatHeadingRad, windParams.speed, 0);
             //let mr = calcMastRotation(aw)
 
-            let chordAngleOfAttackRad = grad2rad(20); // optimal angle of attack for 10% camber; http://www.onemetre.net/design/Entry/entry.htm
+            let chordAngleOfAttackRad = grad2rad(sailParams.angleOfAttack); // optimal angle of attack for 10% camber; http://www.onemetre.net/design/Entry/entry.htm
             const maxMastRotationRad = Math.PI / 2;
             const maxChordRotationPerSailLevelRad = Math.PI/3*2 / sailLevels; // empirical limit
 
@@ -888,6 +929,10 @@ function render() {
             boat.updateWorldMatrix(false, true);
             let mainSheetLength = Math.round(recalcMainSheet(pTackWorld));
 
+//TDODO CHORD ANGLE OF ATTACK IS WRONG!!!!!            
+            let actualAngleOfAttack = rad2grad(absAwaRad - topChordRotationRad - mastRotationRad); // use this to calculate forces
+            //console.log("topchordangle: " + rad2grad(topChordRotationRad).toFixed(2) + " mastrotation: " + rad2grad(mastRotationRad).toFixed(2) + "absawa:" + rad2grad(absAwaRad).toFixed(2))
+
             scene.updateMatrixWorld();
             //boat.updateWorldMatrix(true, true);
 
@@ -903,14 +948,15 @@ function render() {
             let infoDetailHtml = "";
             if (boatParams.details) {
                 infoDetailHtml = 
-                    "<br>Mast angle of attack: " + rad2grad(mastEntryAngleRad).toFixed(1) + "°" +
+                    "<br>Chord angle of attack: <span " + (Math.round(actualAngleOfAttack) < sailParams.angleOfAttack ? "style='color:red'>" : ">") + Math.round(actualAngleOfAttack) + "</span>° (apparent wind vs. chord at mast top)" +
+                    "<br>Mast angle of attack: -" + Math.round(rad2grad(mastEntryAngleRad)) + "°" +
                     "<br>Sail area: " + (sailParams.mastArea + sailParams.sailArea).toFixed(2) + "m² (mast: " + sailParams.mastArea.toFixed(2) + "m², sail: " + sailParams.sailArea.toFixed(2) + "m²)" + //&sup2;
                     "<br>Mast foot over water: " + (mastFootOverWaterHeight / 1000).toFixed(1) + "m" +
                     "<br>Apparent wind power: " + power.toFixed(1) + "kn average over sail" +
-                    "<br>Girth: " + sailShape.girth.toFixed(1) + "mm" +
+                    "<br>Girth: " + Math.round(sailShape.girth) + "mm" +
                     "<br>Camber: " + Math.round(sailShape.draftPositionRatio * 100) + "%" + 
                     "<br>Draft: " + Math.round(sailShape.draftDepthRatio * 100) + "%" + 
-                    "<br>Force angle: " + rad2grad(sailShape.forceAngleRad).toFixed(2) + "°";
+                    "<br>Force angle: " + rad2grad(sailShape.forceAngleRad).toFixed(1) + "°";
             }
 
             let infoDebugHtml = "";
@@ -944,13 +990,16 @@ function recalcTravellerPosition(tackPositionAside, tackPositionTwistCompensatio
     mainSheetGeometry.verticesNeedUpdate = true;
     let travellerPosition = Math.abs(tackPositionAside) - Math.abs(tackPositionTwistCompensationAside);
     let travellerPositionAbs = travellerPosition < 0.0 ? 0.0 : travellerPosition;
+    if (travellerPositionAbs > boatLimits.maxTraveller) {
+        travellerPositionAbs = boatLimits.maxTraveller;
+    }
     let travellerRotationAbs = Math.asin(travellerPositionAbs/4000.0);
     //console.log("TravellerPosition: " + travellerPositionAbs.toFixed(2));
     //console.log("TravellerRotation: " + travellerRotationAbs.toFixed(2));
     //console.log("TravellerCompensation: " + tackPositionTwistCompensationAside.toFixed(2));
    
-    const maxTravellerRotationAbs = grad2rad(10);
-    travellerRotationAbs = travellerRotationAbs > maxTravellerRotationAbs ? maxTravellerRotationAbs : travellerRotationAbs;
+    //const maxTravellerRotationAbs = grad2rad(10);
+    //travellerRotationAbs = travellerRotationAbs > maxTravellerRotationAbs ? maxTravellerRotationAbs : travellerRotationAbs;
     traveller.rotation.y = - travellerRotationAbs * dirfact;
     boat.updateWorldMatrix(false, true);
     let travellerWorldVector =  traveller.localToWorld(travellerCar.position.clone());
