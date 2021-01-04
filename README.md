@@ -62,7 +62,7 @@ How to adjust twist?
 |[![downwind light](screenshots/downwindLightWind.jpg)][downwindlight]|[![upwind foiling](screenshots/upwindFoiling.jpg)][upwindfoiling]
 
 
-# The (Non-)Scientific assumptions behind the Simulator
+# The Assumptions behind the Simulator
 
 ## Sail
 Sails follow approximately a parabolic shape with it's max depth moved forward from the middle of the sail. Moving the camber or draft position forward from the middle which is a 50% position, produces a better lift and comes close to a shape of a airwing. In practice camber position is moved forward towards a 38-45% position relative to chord length. In real world, the ways to move the camber position forward are:
@@ -73,7 +73,6 @@ Sails follow approximately a parabolic shape with it's max depth moved forward f
 
 [<img src="screenshots/parabolicsailshape.jpg" width=50%>](https://simulator.atterwind.info/?bh=135&bs=22&ws=15&wh=0.27&ch=5.8&cs=0.7&cl=1.2&cry=9.7&crz=15.4&crx=-58.6&cth=0.3&cts=-2.7&ctl=0.1&csh=1)
 
-### Simulator assumptions
 The simulation calculates the sail-shape in two steps. First it is modeling a flat 2D version of a sail, with dimensions listed below in the table, and evently distributed mesh points. Then the sail shape is calculated based on Lester Gilbert's great summary of calculating a parabolic sail shape design and the surrounding theory, which is provided on [onemetre.net][onemetre]. This parabolic shape is transformed into rotations, which are applied to all the mesh-points or vortices of the sail, turning the 2D sail into a 3D shaped sail. This approach simplifies modeling sail twist, by calculating apparent wind at each level of the sail and adding this rotation change to the rotation already determined for the sail shape. Limiting the max rotation difference between nearby levels of the sail lets, e.g. max 1° rotation difference between sail height of 1000mm vs. 1010mm is a simple approximation to limit stretching of the virtual sail material.
 
 |metric|value|comment|
