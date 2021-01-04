@@ -65,7 +65,7 @@ How to adjust twist?
 # The Assumptions behind the Simulator
 
 ## Sail
-Sails follow approximately a parabolic shape with it's max depth moved forward from the middle of the sail. Moving the camber or draft position forward from the middle which is a 50% position, produces a better lift and comes close to a shape of a airwing. In practice camber position is moved forward towards a 38-45% position relative to chord length. In real world, the ways to move the camber position forward are:
+Sails follow approximately a parabolic shape with it's max depth moved forward from the middle of the sail. Moving the camber or draft position forward from the 50% middle position, produces a better lift and comes close to a shape of a airwing. In practice camber position is moved forward towards a 36-45% position relative to chord length. In real world, the ways to move the camber position forward are:
 * Asymmetrical shaped battens (one end is thicker then the others). Such battens are made to bend under longitudinal pressure already at positions of choice, so have their max bend-depth typically somewhere between 36% to 45% of length. [Fiberfoam battens](https://www.fiberfoam.net/products/technical-tips/) are designed and made with their position of maximum camber at between 38% and 45%. Similarily also [Dynaflex battens](https://dynaflexsailbattens.com/technology/).
 * Pulling the cunningham bends the mast, flattens the sail, and moves the camber position forward. This changes also entry and exit angle of the sail shape. (cunningham is right now experimental in the simulator and I am not happy yet with the produced sail shape, but it provides already an idea)
 * Mast rotation influences the shape. Popular [Fiberfoam tapered A-Class masts](https://www.catsailingnews.com/2015/02/a-class-dna-mast-now-built-by-fiberfoa.html) have a shape of 160×60 mm in the bottom to 130×45 mm in the top.
@@ -119,9 +119,9 @@ The traveller position is calculated through virtually elongating the leech of t
 Now when there is sail-twist, the additional traveller movement is determined by virtually elongating the leech to the transom. This is a simple linear connection from the tack, the next leechpoint above the tack, and calculating the intersection at the transom leveraging simply the lever principle. 
 
 ## Experimental settings: Cunningham, Angle of Attack
-* Cunningham setting modifies the parabolic shape of the simulated sail to move the draft/camber forward. I am not fully happy with the resulting shape but feel free to play with it. It primarily changes the lift-force vector and it will become relevant when calculating sail lift and momentum. Cunningham simulation should potentially flatten the sail too. 
-* Outhaul might be another optional setting to flatten the sail from its default 10% draft.
-* Angle of attack of e.g. 20° is a targeted angle that can be met when bearing away enough from the wind. According to [Lester Gilbert's][onemetre] research 20° is optimum lift, but I am finding that 15° brings the simulator closer to real-world settings. [Thoughts?][discussion]
+* __Cunningham__ setting modifies the parabolic shape of the simulated sail to move the draft/camber forward. I am not fully happy with the resulting shape but feel free to play with it. It primarily changes the lift-force vector and it will become relevant when calculating sail lift and momentum. Cunningham simulation should potentially flatten the sail too. 
+* __Outhaul__ might be another optional setting to flatten the sail from its default 10% draft.
+* __Angle of attack__ of e.g. 20° is a targeted angle that can be met when bearing away enough from the wind. According to [Lester Gilbert's][onemetre] research 20° is optimum lift, but I am finding that 15° brings the simulator closer to real-world settings. [Thoughts?][discussion]
 
 # Real world comparision
 
@@ -157,7 +157,7 @@ This table is a big guesstimate right now as I need a polar diagram and more acc
 
 When the table shows a _vs._ then it is simulator _vs. Mischa's real-world-best-practice_.
 
-First conclusions: Calculations were based on 20° angle of apparent wind vs. sail chord. Adjusting angle of attack to 15° OR reducing the Hellman constant (for reduced wind-gradient) brings closer results. At low speeds, 
+First conclusions: Calculations were based on 20° angle of apparent wind vs. sail chord. Adjusting angle of attack to 15° OR reducing the Hellman constant (for reduced wind-gradient) brings closer results. The result is close enough to get a rough feel, and wanting to get back on the water to try some trims in the real-world.
 
 
 [upwind1]: https://simulator.atterwind.info/?bh=45&bs=3&ws=4&wh=0.27&ch=17.0&cs=-1.9&cl=2.0&cry=9.4&crz=134.6&crx=-99.2&cth=5.0&cts=0.0&ctl=0.0&csh=0&vd=1 (view in simulator)
@@ -238,6 +238,7 @@ The simulator can be configured with URL query string parameters. You get those 
 
 ## Todo List
 * MOST-WANTED: [__polar diagram data__][polardiagram] to provide max speed info (vs. wishful speeds of) to enable "realistic constraints", and to simulate the twist and heading change as the boat picks up speed. If anyone has such an A-Class polar, please share.
+    * Leverage [Sailmon MAX](https://sailmon.com/max/) with [Calypso Ultrasonic Anemometer](https://calypsoinstruments.com) to get data for deriving a polar.
 * Force moments and equilibrium
     * visualize [force on sail][forcesonsails]
     * simulate a body sitting, hiking or trapezing 
