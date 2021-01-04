@@ -951,7 +951,7 @@ function render() {
             if (boatParams.details) {
                 infoDetailHtml = 
                     "<br>Chord angle of attack: <span " + (Math.round(actualAngleOfAttack) < sailParams.angleOfAttack ? "style='color:red'>" : ">") + Math.round(actualAngleOfAttack) + "</span>° (apparent wind vs. chord at mast top)" +
-                    "<br>Mast angle of attack: -" + Math.round(rad2grad(sailParams.angleOfAttack - mastEntryAngleRad)) + "° (vs. apparent wind)" +
+                    "<br>Mast angle of attack: -" + Math.round(sailParams.angleOfAttack - rad2grad(mastEntryAngleRad)) + "° (vs. apparent wind)" +
                     "<br>Sail area: " + (sailParams.mastArea + sailParams.sailArea).toFixed(2) + "m² (mast: " + sailParams.mastArea.toFixed(2) + "m², sail: " + sailParams.sailArea.toFixed(2) + "m²)" + //&sup2;
                     "<br>Mast foot over water: " + (mastFootOverWaterHeight / 1000).toFixed(1) + "m" +
                     "<br>Apparent wind power: " + power.toFixed(1) + "kn average over sail" +

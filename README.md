@@ -65,29 +65,39 @@ How to adjust twist?
 # The (Non-)Scientific assumptions behind the Simulator
 
 ## Sail
-Sails are in theory shaped parabolic shape with it's max depth right in the middle of the sail. We'd say camber or draft position of 50%, producing a suboptimal lift coefficient, hence a less effective wing shape of the sail. Shapes with camber position moved forward towards a 35-45% chord position provide better lift coefficients. Ways to move the chord forward are:
+Sails follow approximately a parabolic shape with it's max depth moved forward from the middle of the sail. Moving the camber or draft position forward from the middle which is a 50% position, produces a better lift and comes close to a shape of a airwing. In practice camber position is moved forward towards a 38-45% position relative to chord length. In real world, the ways to move the camber position forward are:
 * Asymmetrical shaped battens (one end is thicker then the others). Such battens are made to bend under longitudinal pressure already at positions of choice, so have their max bend-depth typically somewhere between 36% to 45% of length. [Fiberfoam battens](https://www.fiberfoam.net/products/technical-tips/) are designed and made with their position of maximum camber at between 38% and 45%. Similarily also [Dynaflex battens](https://dynaflexsailbattens.com/technology/).
 * Pulling the cunningham bends the mast, flattens the sail, and moves the camber position forward. This changes also entry and exit angle of the sail shape. (cunningham is right now experimental in the simulator and I am not happy yet with the produced sail shape, but it provides already an idea)
-* Mast rotation influences the shape. Popular [Fiberfoam tapered A-Class masts](https://www.catsailingnews.com/2015/02/a-class-dna-mast-now-built-by-fiberfoa.html) have a shape of 160×60 mm in the bottom to 130×45 mm in the top. 
-* I assume the how the sail is cut/made influences the shape too. 
+* Mast rotation influences the shape. Popular [Fiberfoam tapered A-Class masts](https://www.catsailingnews.com/2015/02/a-class-dna-mast-now-built-by-fiberfoa.html) have a shape of 160×60 mm in the bottom to 130×45 mm in the top.
+* For sure there is more, e.g. the how the sail is cut/made may influence the camber position too. 
 
 [<img src="screenshots/parabolicsailshape.jpg" width=50%>](https://simulator.atterwind.info/?bh=135&bs=22&ws=15&wh=0.27&ch=5.8&cs=0.7&cl=1.2&cry=9.7&crz=15.4&crx=-58.6&cth=0.3&cts=-2.7&ctl=0.1&csh=1)
 
-Note, when boat is foiling, what happens at 13kts+, then the boat lifts by 52cm, thus sail is higher above water what has a slight impact on twist in lower sail area. 
-
 ### Simulator assumptions
-A great summary of calculating a parabolic sail shape design and the surrounding theory is provided on [onemetre.net][onemetre]. This simulator follows that math for building the models.
+The simulation calculates the sail-shape in two steps. First it is modeling a flat 2D version of a sail, with dimensions listed below in the table, and evently distributed mesh points. Then the sail shape is calculated based on Lester Gilbert's great summary of calculating a parabolic sail shape design and the surrounding theory, which is provided on [onemetre.net][onemetre]. This parabolic shape is transformed into rotations, which are applied to all the mesh-points or vortices of the sail, turning the 2D sail into a 3D shaped sail. This approach simplifies modeling sail twist, by calculating apparent wind at each level of the sail and adding this rotation change to the rotation already determined for the sail shape. Limiting the max rotation difference between nearby levels of the sail lets, e.g. max 1° rotation difference between sail height of 1000mm vs. 1010mm is a simple approximation to limit stretching of the virtual sail material.
 
 |metric|value|comment|
-|:--- |:---|:---|
-|Camber position|45%|Camber or draft is slightly forward from middle|
-|Camber depth|10%|this is % of chord length|
-|Chord|2125mm|this is tack distance from mast of a powered sail. approximately the boom length minus outhaul length from boom tip|
-|Angle of attack|20°|Apparent wind direction vs. sail chord, this drives the sail twist math (15° might be a better value, pending further research)|
-|Foiling height|52cm|Moves the entire sail to a 52cm higher position|
+|---:|:---|:---|
+|camber position|45%|Camber or draft is slightly forward from middle|
+|camber depth|10%|this is % of chord length|
+|chord at tack|2125mm|this is tack distance from mast of a powered sail. approximately the boom length minus outhaul length from boom tip|
+|chord at mast top|390mm|the sail shape at the mast top is simply a scaled down version of the shape at the tack level|
+|tack height|900mm|tack position above deck|
+|mast and sail height|9065mm||
+|mast width|140mm|the mast is treated as part of the parabolic sail shape and follows its shape and entry angle|
+|decksweeper width|900mm|decksweeper area is treated differently, it follows the sail shape of the tack height and gets clipped off|
+|leech curvature|200mm|A-Cat sails are open in design, only limited to 13.94m² in area including the mast. This curvature has been picked arbitrary to visually look closer to the real-world sails.|
+|sail area|13.94m²|The simulator calculates the area of the parabolic shaped sail by summing up the area of the triangular faces.|
+|girth at tack|2181mm|Girth is calculated numerically summing up the distance of 1000 points that are modeled along the parabolic shape, after scaling it to match the chord length|
+|angle of attack|20°|Apparent wind direction vs. sail chord, this drives the sail twist math (15°-20° are good angles)|
+|foiling height|52cm|Moves the entire sail to a 52cm higher position|
+
+Note, when boat is foiling, what happens at 13kts+, then the boat lifts by 52cm, thus sail is higher above water what has a slight impact on twist in lower sail area. 
+
+![Apparent wind and sail angles](sailanglesdiagram.jpg)
 
 ## Mast rotation
-Mast rotation is visualized as it appears on the [DNA F1x A-Cat][dnaf1x]. 
+Mast rotation is visualized as it appears on the [DNA F1x A-Cat][dnaf1x]. The red pointer on the mast foot is the mast-rotation arm, used to limit or force rotation on real boats. The simulator infers mast rotation from the front section of the sail shape, so that the mast virtually follows exactly the calculated parabolic shape. With default settings, mast angle of attack to apparent wind is rounded -5°.
 
 |marker|angle|
 |:---:|:---:|
@@ -105,6 +115,9 @@ https://simulator.atterwind.info/?bh=135&bs=23&ws=15&wh=0.27&ch=2.3&cs=1.0&cl=0.
 The traveller is also visualized as it appears on the [DNA F1x A-Cat][dnaf1x]. It's markers are setup in 10cm distance from each, with max 80cm position off centre. Below picture shows the traveller 18cm off-centre.
 
 [<img src="screenshots/traveller.jpg" width=50%>](https://simulator.atterwind.info/?bh=135&bs=20&ws=15&wh=0.27&ch=2.6&cs=-2.1&cl=3.3&cry=46.0&crz=118.9&crx=-111.7&cth=-0.7&cts=-0.8&ctl=-0.3&csh=1)
+
+The traveller position is calculated through virtually elongating the leech of the sail to the transom. When there is no sail-twist (i.e. heading directly into the wind), the traveler position is exactly aligned to the horizontal sideways sail tack position. 
+Now when there is sail-twist, the additional traveller movement is determined by virtually elongating the leech to the transom. This is a simple linear connection from the tack, the next leechpoint above the tack, and calculating the intersection at the transom leveraging simply the lever principle. 
 
 ## Experimental settings: Cunningham, Angle of Attack
 * Cunningham setting modifies the parabolic shape of the simulated sail to move the draft/camber forward. I am not fully happy with the resulting shape but feel free to play with it. It primarily changes the lift-force vector and it will become relevant when calculating sail lift and momentum. Cunningham simulation should potentially flatten the sail too. 
