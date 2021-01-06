@@ -34,9 +34,11 @@ let water, sun, mesh;
 
 let boat, mast, traveller, travellerCar;
 
-let windfield = [];
+let windField = [];
+let apparentWindField = [];
+let sailForceField = [];
+let sailForceGroup = new THREE.Group();
 
-let apparentwindfield = [];
 
 let loadingComplete = false;
 
@@ -58,10 +60,11 @@ const windLimits = {
 
 const boatParams = {
     mastrotation: 0.0, // [grad]
-    heading: 0.0, // [grad]
+    heading: 130.0, // [grad]
     speed: 5.0, // [kn]
     details: false, 
-    vmg: 0.0
+    vmg: 0.0,
+    forces: false
 }
 
 const travellerParams = {
@@ -214,6 +217,10 @@ function getUrlParameters() {
     {
         sailParams.cunningham = sailCunningham;
     }
+    let viewForces = parseInt(getURLParameter("vf"));
+    if (viewForces == 1) {
+        boatParams.forces = true;
+    } // ignore details off
 
 
 }
@@ -367,6 +374,7 @@ function init() {
             + (cameraParams.syncRotation ? "&csh=1" : "") 
             + (sailDefaults.angleOfAttack != sailParams.angleOfAttack ? "&saa=" + Math.round(sailParams.angleOfAttack) : "")
             + (boatParams.details ? "&vd=1" : "") 
+            + (boatParams.forces ? "&vf=1" : "") 
             + (sailParams.cunningham != sailDefaults.cunningham ? "&sc=" + sailParams.cunningham : "");
     }
 
@@ -395,10 +403,12 @@ function init() {
                         }};
 
     const folderView = gui.addFolder("View");
+    let fViewHelp = { help:function(){  document.getElementById("helpLink").click(); } };
+    folderView.add(fViewHelp,'help').name('help & information');
+    folderView.add(fViewShare,'share').name('share current view');
     folderView.add(cameraParams, 'syncRotation').name("sync with heading").onChange(()=>{ firstTimeRotationSync = true; }); 
     //TODO rotation sync jumps a bit when using first timme
     folderView.add(boatParams, 'details').name("show trim details").onChange(recalcBoatConfigurationOnNextAnimationFrame); 
-    folderView.add(fViewShare,'share').name('share current view');
     let fViewDownwindFoiling = { downfoil:function(){ boatParams.heading = 135; boatParams.speed = 22; windParams.speed = 15; recalcBoatConfigurationOnNextAnimationFrame();  }};
     folderView.add(fViewDownwindFoiling,'downfoil').name('downwind foiling');
     let fViewUpwindFoiling = { upfoil:function(){ boatParams.heading = 50; boatParams.speed = 17; windParams.speed = 15; recalcBoatConfigurationOnNextAnimationFrame();  }};
@@ -426,6 +436,7 @@ function init() {
     const folderAdvanced = gui.addFolder("Experimental");
     folderAdvanced.add(sailParams, 'cunningham', sailLimits.minCunningham, sailLimits.maxCunningham, 1).name('cunningham').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
     folderAdvanced.add(sailParams, 'angleOfAttack', sailLimits.minAngleOfAttack, sailLimits.maxAngleOfAttack, 1).name('angle of attack').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
+    folderAdvanced.add(boatParams, 'forces', false).name('sail forces').onChange(recalcBoatConfigurationOnNextAnimationFrame).listen();
 
 
 
@@ -451,11 +462,11 @@ function init() {
 
     let pos, height;
     for (height = 1; height < 11; height++) {
-        windfield[height] = [];
+        windField[height] = [];
         for (pos = 0; pos <= 10; pos++) {
             let clone = windcone.clone();
             clone.position.set(0, height, pos - 5);
-            windfield[height][pos] = clone;
+            windField[height][pos] = clone;
             windGroup.add(clone);
         }
     }
@@ -464,11 +475,12 @@ function init() {
     for (let height = 0; height < 11; height += 0.5) {
         let clone = windcone.clone();
         clone.position.set(0, height, 0);
-        apparentwindfield[height * 2] = clone;
+        apparentWindField[height * 2] = clone;
         scene.add(clone);
     }
 
     windGroup.position.set(7.5, 0, 0);
+
     scene.add(windGroup);
 
 
@@ -562,11 +574,40 @@ function init() {
                 mast.add(new THREE.AxesHelper(1000));
             }
 
+
+
+            // -------------- sail rigging ----------------
+
             const sail = rigSail();
             sail.position.x = sailOriginInFrontOfMastRotation;
             mast.add(sail);
             boat.add(mast);
 
+
+            // -------- Sail force visualization --------------------------
+            //const force = new THREE.Group();
+            const forceGeometry = new THREE.ConeGeometry(100, 200, 12);
+            const forceMaterial = new THREE.MeshStandardMaterial({ color: 0x00FF00, opacity: 0.5, transparent: true });
+            const force = new THREE.Mesh(forceGeometry, forceMaterial);
+            forceGeometry.translate(0, 100, 0);
+            forceGeometry.rotateZ(Math.PI/2);
+            //force.add(force);
+        
+            const levelHeight = sailHeight / 10;
+            for (let heightLevel = 0; heightLevel < 10; heightLevel++) {
+                let forceClone = force.clone();
+                forceClone.material = forceMaterial.clone();
+                forceClone.position.set(0, heightLevel*levelHeight + levelHeight/2, 0);
+                sailForceField[heightLevel] = forceClone;
+                //forceClone.visible = boatParams.forces;
+                forceClone.material.color.r = heightLevel/10;
+                forceClone.material.color.g = 1-heightLevel/10;
+                sailForceGroup.add(forceClone);
+            }
+            sail.add(sailForceGroup);
+            sailForceGroup.visible = boatParams.forces;
+
+            // --------- mainsheet -----------------
             const mainSheetMaterial = new THREE.LineBasicMaterial({ color: 0x8f0f0f });
             const points = [];
             points.push(new THREE.Vector3(0, 0, 0));
@@ -577,6 +618,9 @@ function init() {
             boat.add(mainSheet);
         });
     });
+
+
+
 
     // Lights
 
@@ -617,7 +661,6 @@ function rigSail() {
     sail = new THREE.Group();
     sailGeometry = new THREE.Geometry();
     sailClipWidthPerLevel = [];
-
 
     for (let level = 0; level <= sailLevels; level++) {
         let height = level * sailLevelHeight;
@@ -816,7 +859,10 @@ function render() {
                 }
             }
             boat.updateWorldMatrix();
-    
+
+            sailForceGroup.visible = boatParams.forces;
+
+
             if (boatParams.speed >= boatLimits.minFoilingSpeed) {
                 boat.position.y = boatLimits.foilingBoatLift; // foiling height
             } else {
@@ -853,7 +899,7 @@ function render() {
 
             // adjust sailshape
             let luffAxis = new THREE.Vector3(0, 1, 0);
-            let power = 0.0;
+            let forces = [];
             let lastChordRotationRad = null;
             let tackChordRotationRad = null;
             let topChordRotationRad = null;
@@ -882,10 +928,6 @@ function render() {
                 }
                 lastChordRotationRad = chordRotationRad;
 
-                if (aw.aws > 25) { // TODO =================== lift calculation
-                    power += aw.aws; // sum up all wind speeds
-                }
-
                 let clipWidth = sailClipWidthPerLevel[level]; // null, if level is at or above tack
                 let verticeAnglesRad = sailShape.getVerticesAngles(sailVerticesPerLevel, sailMastWidth, clipWidth);
 
@@ -893,7 +935,9 @@ function render() {
                 for (let v = 1; v < sailVerticesPerLevel; v++) {
                     let i = level * sailVerticesPerLevel + v;
                     sailGeometry.vertices[i].copy(flatSailgeometry.vertices[i]);
+                    //console.log("before rotation: " + sailGeometry.vertices[i].x.toFixed(2) + "," + sailGeometry.vertices[i].z.toFixed(2));
                     sailGeometry.vertices[i].applyAxisAngle(luffAxis, -(chordRotationRad + verticeAnglesRad[v]) * dirfact);
+                    //console.log("after rotation: " + sailGeometry.vertices[i].x.toFixed(2) + "," + sailGeometry.vertices[i].z.toFixed(2));
                 }
 
                 if (level == sailTackLevel) {
@@ -904,9 +948,64 @@ function render() {
                     sailTwist = topChordRotationRad - tackChordRotationRad;                    
                 }
 
+                // -------- sail forces --------------
+                let actualLevelAngleOfAttack = levelAbsAwaRad - chordRotationRad - mastRotationRad;
+                if (boatParams.forces) {
+                    let levelChord = flatSailgeometry.vertices[(level+1)*sailVerticesPerLevel-1].x;
+                    let levelArea = levelChord / 1000 * sailLevelHeight / 1000; // not 100% accurate area calc, but close enough
+                    let levelWindspeed = aw.aws;
+                    const airDensity = 1.2041	// at 20degrees celsius // https://en.wikipedia.org/wiki/Density_of_air
+                    const liftCoefficient = 1.16; 
+                    let liftForce = 1/2 * airDensity * levelWindspeed**2 * levelArea * liftCoefficient; // https://en.wikipedia.org/wiki/Lift_(force)
+                    //console.log("AAA " + level + ":" + rad2grad(actualLevelAngleOfAttack).toFixed(1) + "->" + liftForce.toFixed(2));
+                    forces.push({ force: liftForce, angle: actualLevelAngleOfAttack, rotation: chordRotationRad, chord: levelChord });
+                }
+              
+
             }
 
-            power /= sailLevels;
+            let totalForce = 0;
+            let forceAngleRad = sailShape.forceAngleRad;
+            if (boatParams.forces) {
+                for (let f of forces) {
+                    totalForce += f.force;
+                }
+                //console.log("TotalForce: " + totalForce.toFixed(1));
+                //console.log("Forces: " + forces.length);
+
+                let forcesPerLevel = forces.length/10;
+                for (let i = 0; i < sailForceField.length; i++ ) {
+                    let areaForce = 0;
+                    let chordSum = 0;
+                    let count = 0;
+                    let angleSum = 0;
+                    let rotationSum = 0;
+                    for (let fi = Math.floor(i*forcesPerLevel); fi < Math.floor((i+1)*forcesPerLevel); fi++) {
+                        count++;
+                        const force = forces[fi];
+                        areaForce += force.force * force.angle/grad2rad(sailParams.angleOfAttack);
+                        chordSum += force.chord;
+                        angleSum += force.angle;
+                        rotationSum += force.rotation;
+                        //console.log("areaforce: " + areaForce.toFixed(2));
+                    }
+                    sailForceField[i].scale.x = areaForce / count * 10;
+                    
+                    const verticeOfForce = Math.ceil(sailShape.draftPositionRatio * sailVerticesPerLevel);
+                    let verticesLevelOfForce = Math.floor(i * forcesPerLevel + forcesPerLevel / 2);
+                    //console.log("verticeLevelOfForce: " + verticesLevelOfForce);
+                    let vertice = verticesLevelOfForce*sailVerticesPerLevel + verticeOfForce;
+                    //sailGeometry.vertices[vertice].z = 1000;
+                    sailForceField[i].position.x = sailGeometry.vertices[vertice].x;
+                    sailForceField[i].position.z = sailGeometry.vertices[vertice].z + 100*dirfact;
+
+                    
+                    sailForceField[i].rotation.y = (Math.PI/2 - rotationSum / count - forceAngleRad) * dirfact; // + forceAngleRad!!
+                }
+            }
+
+
+
             sailGeometry.verticesNeedUpdate = true;
 
             recalcWindField(windParams.speed, windParams.hellman);
@@ -954,7 +1053,7 @@ function render() {
                     "<br>Mast angle of attack: -" + Math.round(sailParams.angleOfAttack - rad2grad(mastEntryAngleRad)) + "° (vs. apparent wind)" +
                     "<br>Sail area: " + (sailParams.mastArea + sailParams.sailArea).toFixed(2) + "m² (mast: " + sailParams.mastArea.toFixed(2) + "m², sail: " + sailParams.sailArea.toFixed(2) + "m²)" + //&sup2;
                     "<br>Mast foot over water: " + (mastFootOverWaterHeight / 1000).toFixed(1) + "m" +
-                    "<br>Apparent wind power: " + power.toFixed(1) + "kn average over sail" +
+                    "<br>Force: " + totalForce.toFixed(1) + "N average over sail (Experimental!!)" +
                     "<br>Girth: " + Math.round(sailShape.girth) + "mm" +
                     "<br>Camber: " + Math.round(sailShape.draftPositionRatio * 100) + "%" + 
                     "<br>Draft: " + Math.round(sailShape.draftDepthRatio * 100) + "%" + 
@@ -1014,7 +1113,7 @@ function recalcApparentWindField(windspeed, sog, cog, hellman) {
     for (let height = 0; height < 11; height += 0.5) {
         let tws = Wind.windSheer(windspeed, height, hellman);
         let aw = Wind.apparentWind(sog, cog, tws, 0);
-        let cone = apparentwindfield[height * 2];
+        let cone = apparentWindField[height * 2];
         cone.scale.set(aw.aws * 0.1, aw.aws, aw.aws * 0.1)
         cone.rotation.set(0, - aw.awd, Math.PI / 2);
     }
@@ -1026,7 +1125,7 @@ function recalcWindField(windspeed, hellman) {
     for (height = 1; height < 11; height++) {
         let windspeedfactor = Wind.windSheer(windspeed, height, hellman);
         for (pos = 0; pos <= 10; pos++) {
-            windfield[height][pos].scale.set(windspeedfactor * 0.1, windspeedfactor, windspeedfactor * 0.1);
+            windField[height][pos].scale.set(windspeedfactor * 0.1, windspeedfactor, windspeedfactor * 0.1);
         }
     }
 }

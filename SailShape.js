@@ -185,6 +185,7 @@ export default class SailShape {
         return angles;
     }
 
+
     // get point at girth distance
     // returns a 2D Vector with coordinates
     // TODO PERFORMANCE OPTIMIZATION BY NOT ITERATING EVERY TIME OVER POINTS!!!
