@@ -320,20 +320,20 @@
 
         function introPopupClose() {
             if (showIntroPopupAtStartCheckBox.checked) {
-                document.cookie = "showIntroPopup=true";
-            } else {
                 document.cookie = "showIntroPopup=; expires=Thu, 01 Jan 1970 00:00:00 UTC"; // delete cookie
+            } else {
+                document.cookie = "showIntroPopup=false";
             };
             introPopup.style.display = "none";
             window.removeEventListener("click", introPopupClick);
             window.removeEventListener("touchstart", introPopupClick);
         }
 
-        if (document.cookie.split('; ').find(row => row.startsWith("showIntroPopup=true"))) {
+        if (document.cookie.split('; ').find(row => row.startsWith("showIntroPopup=false"))) {
+            showIntroPopupAtStartCheckBox.checked = false;
+        } else {
             showIntroPopupAtStartCheckBox.checked = true;
             showIntroPopup();
-        } else {
-            showIntroPopupAtStartCheckBox.checked = false;
         }
     </script>
     
