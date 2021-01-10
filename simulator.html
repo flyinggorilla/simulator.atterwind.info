@@ -250,35 +250,99 @@
         <!-- Modal content -->
         <div class="modal-content">
             <div class="modal-header">
-            <span class="close">&times;</span>
-            <h3>Copy below link to bookmark or share this view ...</h3>
+                <span class="close" id="closeX" onclick="shareUrlPopupClose()">&times;</span>
+                <h3>Copy below link to bookmark or share this view ...</h3>
             </div>
             <div id="shareUrlPopupContent" class="modal-body">
             </div>
             <div class="modal-footer">
-                your web browsers URL has been updated too. 
+                your web browsers URL has been updated too.
             </div>
         </div>
         <script>
-            let span = document.getElementsByClassName("close")[0];
             let modal = document.getElementById("shareUrlPopup");
-            span.onclick = function() {
+           
+            function shareUrlPopupClose() {
                 modal.style.display = "none";
+                window.removeEventListener("click", shareUrlPopupClick);
+                window.removeEventListener("touchstart", shareUrlPopupClick);
             }
-            window.onclick = function(event) {
+            
+            function shareUrlPopupClick(event) {
                 if (event.target == modal) {
-                    modal.style.display = "none";
+                    shareUrlPopupClose();
                 }
             }
         </script>
     </div>
+    
+    <div id="introPopup" class="introPopup">
+        <div class="introPopupHeader">
+            <span class="introPopupCloseX" id="introPopupCloseX">&times;</span>
+            <a href="https://github.com/flyinggorilla/simulator.atterwind.info/wiki/Home" target="_blank"><h1>Sail-Trim Simulator</h1></a>
+        </div>
+        <div class="introPopupBody">
+            <a href="https://github.com/flyinggorilla/simulator.atterwind.info/wiki/Wind-Basics" target="_blank"><h2>Wind Basics</h2></a>
+            Learn and get a better mental model about wind-gradient, apparent-wind, sail-twist at changing speeds and course
+            <a href="https://github.com/flyinggorilla/simulator.atterwind.info/wiki/Simulation" target="_blank"><h2>Simulator and Sail Trim</h2></a>
+            Improve trimming through boat acceleration, especially in apparent wind high-performance sailing
+            <a href="https://github.com/flyinggorilla/simulator.atterwind.info/wiki/Real-world-comparison" target="_blank"><h2>Real world comparison</h2></a>
+            Comparison with real-world A-Class foiling catamaran DNA F1x trim settings
+            <a href="https://github.com/flyinggorilla/simulator.atterwind.info/wiki/Usage" target="_blank"><h2>Simulator Usage</h2></a>
+            Mouse, keyboard, touch and Weblink sharing
+            <a href="https://github.com/flyinggorilla/simulator.atterwind.info/wiki"><h2>More info</h2></a>
+            Source code and documentation on <a href="https://github.com/flyinggorilla/simulator.atterwind.info/wiki" target="_blank">Github</a>
+        </div>
+        <div class="introPopupFooter">
+            <input type="checkbox" id="showIntroPopupAtStartCheckBox">show this info popup at start</input> <!-- onclick="dontshowagain()" -->
+            <span class="introPopupCloseButton" id="introPopupCloseButton" onclick="introPopupClose()">let's go sail!</span>
+        </div>
+    </div>
+    <script>
+        let showIntroPopupAtStartCheckBox = document.getElementById("showIntroPopupAtStartCheckBox");
 
-      
+        function showIntroPopup() {
+            let introPopup = document.getElementById("introPopup");
+            introPopup.style.display = "block";
+            window.addEventListener("click", introPopupClick);
+            window.addEventListener("touchstart", introPopupClick);
+
+        }
+
+        function introPopupClick(event) {
+            if (event.target.id == "introLink") {
+                return;
+            }
+            if (!introPopup.contains(event.target) || event.target.id == "introPopupCloseX") {
+                introPopupClose();
+            }
+        }
+
+        function introPopupClose() {
+            if (showIntroPopupAtStartCheckBox.checked) {
+                document.cookie = "showIntroPopup=true";
+            } else {
+                document.cookie = "showIntroPopup=; expires=Thu, 01 Jan 1970 00:00:00 UTC"; // delete cookie
+            };
+            introPopup.style.display = "none";
+            window.removeEventListener("click", introPopupClick);
+            window.removeEventListener("touchstart", introPopupClick);
+        }
+
+        if (document.cookie.split('; ').find(row => row.startsWith("showIntroPopup=true"))) {
+            showIntroPopupAtStartCheckBox.checked = true;
+            showIntroPopup();
+        } else {
+            showIntroPopupAtStartCheckBox.checked = false;
+        }
+    </script>
+    
     <div id="links">
-        <a href="https://github.com/flyinggorilla/simulator.atterwind.info/wiki" id="helpLink" target="_blank"><img src="info.svg" alt="Help information" title="Help information" width="25" height="25"></a>
-        <img src="share.svg" alt="Share this view with others" title="Share this view with others" width="25" height="25" id="shareLink" style="cursor:pointer">
+        <!-- <a href="https://github.com/flyinggorilla/simulator.atterwind.info/wiki" id="helpLink" target="_blank"> -->
+        <img src="info.svg" alt="Help information" title="Help information" width="25" height="25" id = "introLink" onclick="showIntroPopup()"><!--</a>-->
+        <img src="share.svg" alt="Share this view with others" title="Share this view with others" width="25" height="25"
+            id="shareLink" style="cursor:pointer">
     </div>
     <script type="module" src="simulator.js"></script>
-</body>
-
+    </body>
 </html>

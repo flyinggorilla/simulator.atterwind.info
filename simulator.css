@@ -2,19 +2,31 @@ body {
 	margin: 0;
 	background-color: #000;
 	color: #fff;
-	font-family: Monospace;
 	font-size: 13px;
 	line-height: 24px;
 	overscroll-behavior: none;
+	font-family: Arial, Helvetica, sans-serif;
 }
 
 a {
-	color: steelblue;
+	color: whitesmoke;
 	text-decoration: none;
+}
+
+a:link {
+	color: red;
+}
+
+a:visited {
+	color: met;
+}
+a:active {
+	color: ghostwhite;
 }
 
 a:hover {
 	text-decoration: underline;
+	color: white;
 }
 
 button {
@@ -24,6 +36,7 @@ button {
 
 canvas {
 	display: block;
+
 }
 
 #info {
@@ -125,13 +138,13 @@ a, button, input, select {
 .modal {
 	display: none; /* Hidden by default */
 	position: fixed; /* Stay in place */
-	z-index: 1; /* Sit on top */
+	z-index: 2; /* Sit on top */
 	left: 0;
 	top: 0;
 	width: 100%; /* Full width */
 	height: 100%; /* Full height */
 	overflow: auto; /* Enable scroll if needed */
-	background-color: rgb(0,0,0); /* Fallback color */
+	background-color: black; /* Fallback color */
 	background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 	-webkit-animation-name: fadeIn; /* Fade in the background */
 	-webkit-animation-duration: 0.4s;
@@ -143,7 +156,9 @@ a, button, input, select {
   .modal-content {
 	position: fixed;
 	bottom: 0;
-	background-color: #fefefe;
+	opacity: 0.8;
+	background-color: black; /* Fallback color */
+	/*background-color: rgba(0,0,0,0.4);*/ /* Black w/ opacity */
 	width: 100%;
 	-webkit-animation-name: slideIn;
 	-webkit-animation-duration: 0.4s;
@@ -153,7 +168,7 @@ a, button, input, select {
   
   /* The Close Button */
   .close {
-	color: white;
+	color: ghostwhite;
 	float: right;
 	font-size: 28px;
 	font-weight: bold;
@@ -169,6 +184,7 @@ a, button, input, select {
   .modal-header {
 	padding: 2px 16px;
 	background-color: steelblue;
+	background-
 	color: white;
 	font-family: Arial, Helvetica, sans-serif; /* 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; */
   }
@@ -207,3 +223,85 @@ a, button, input, select {
 	from {opacity: 0} 
 	to {opacity: 1}
   }
+
+
+
+
+  /*------------------------------------------ */
+
+h2 {
+	margin-bottom: 0%;
+	margin-top: 2%;
+}
+
+.introPopup {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  opacity: 0.75;
+  left: 10%;
+  top: 70%;
+  transform: translateY(-70%);
+  width: 80%; 
+  font-size: 13px;
+  line-height: normal;
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+}
+
+
+.introPopupCloseX {
+  color: white;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.introPopupCloseButton {
+	background-color: steelblue;
+	color: white;
+	float: right;
+	font-weight: bold;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	border-radius: 5px;
+  }
+  
+.introPopupCloseButton:hover {
+	 background-color: #20608A;
+}
+
+.introPopupCloseButton:active {
+	background-color: #20608A;
+	border-width: thin;
+	border-style: groove; 
+	border-color: darkslategray;
+}
+
+.introPopupCloseX:hover,
+.introPopupCloseX:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.introPopupHeader {
+  padding: 2px 16px;
+  background-color: #5cb85c;
+  color: white;
+}
+
+.introPopupBody {
+	padding: 5px 16px;
+	padding-bottom: 10px;
+}
+
+.introPopupFooter {
+  padding: 10px 10px;
+  background-color: #5cb85c;
+  color: white;
+}

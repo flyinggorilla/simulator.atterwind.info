@@ -393,6 +393,8 @@ function init() {
         window.history.pushState({}, "Attwerwind simulator position URL", url);    
         let modal = document.getElementById("shareUrlPopup");
         modal.style.display = "block";
+        window.addEventListener("click", shareUrlPopupClick);
+        window.addEventListener("touchstart", shareUrlPopupClick);
         let hostname = window.location.hostname == "localhost" ? "" : "https://simulator.atterwind.info";
         let modalBody = document.getElementById("shareUrlPopupContent");
         modalBody.innerHTML = "<a href=" + hostname + url + ">" + hostname + url + "</a>";
