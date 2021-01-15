@@ -1,0 +1,12 @@
+*.stl
+*.svg
+three*.js
+Sky.js
+Wind.js
+Water.js
+STLLoader.js
+stats.module.js
+OrbitControls.js
+dat.gui.module.js
+waternormals.jpg
+favicon.png

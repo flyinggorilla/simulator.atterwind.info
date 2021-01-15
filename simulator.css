@@ -251,6 +251,21 @@ h2 {
   box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
 }
 
+/* If the screen size is 601px or more, set the font-size of <div> to 80px */
+@media only screen and (min-width: 601px) {
+	.introPopup {
+	  font-size: 13px;
+	}
+  }
+  
+  /* If the screen size is 600px or less, set the font-size of <div> to 30px */
+@media only screen and (max-width: 600px) {
+	.introPopup {
+		font-size: 9px;
+
+  	}
+}
+
 
 .introPopupCloseX {
   color: white;
