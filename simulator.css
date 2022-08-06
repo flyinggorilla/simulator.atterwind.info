@@ -252,11 +252,18 @@ h2 {
 }
 
 /* If the screen size is 601px or more, set the font-size of <div> to 80px */
-@media only screen and (min-width: 601px) {
+@media only screen and (min-width: 601px) and (min-height: 601px) {
 	.introPopup {
 	  font-size: 13px;
 	}
-  }
+}
+
+@media only screen and (min-width: 1200px) {
+	.introPopup {
+	  left: 25%;
+	  width: 50%;
+	}
+}
   
   /* If the screen size is 600px or less, set the font-size of <div> to 30px */
 @media only screen and (max-width: 600px) {
@@ -266,6 +273,12 @@ h2 {
   	}
 }
 
+@media only screen and (max-height: 600px) {
+	.introPopup {
+		font-size: 9px;
+
+  	}
+}
 
 .introPopupCloseX {
   color: white;
